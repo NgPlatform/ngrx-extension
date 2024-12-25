@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/ngrx-extention",
+            "outputPath": "dist/ngrx-extension",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -92,5 +92,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "d126f958-8f9f-4a6a-8f3c-7366bad481fa"
   }
 }
