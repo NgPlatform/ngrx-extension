@@ -8,4 +8,8 @@ export const routes: Routes = [
 				(M) => M.WithStorageSyncComponent,
 			),
 	},
+	{
+		path:'**',
+		redirectTo:'with-storage-sync'
+	}
 ];
