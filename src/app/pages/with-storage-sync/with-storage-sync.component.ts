@@ -12,12 +12,20 @@ import {FormsModule} from '@angular/forms';
         <div class="flex flex-col gap-2">
           @for (todo of $todos(); track i; let i = $index) {
             <div class="flex gap-2 items-center">
-              <div class="border border-slate-300 rounded-2xl p-5 w-96">
-                <p>user:{{ todo.user }}</p>
-                <p>body:{{ todo.task }}</p>
+              <div class="flex gap-2 flex-col border border-slate-300 rounded-2xl p-5 w-96">
+                @if ($editTodo() === i) {
+                  <input placeholder="user" [(ngModel)]="$editUser" class="p-2 rounded-2xl">
+                  <input placeholder="task" [(ngModel)]="$editTask" class="p-2 rounded-2xl">
+                } @else {
+                  <p>user:{{ todo.user }}</p>
+                  <p>body:{{ todo.task }}</p>
+                }
               </div>
               <button class="border rounded-lg p-3" (click)="clickRemoveTask(i)">
                 <p class="text-red-500">削除</p>
+              </button>
+              <button class="border rounded-lg p-3" (click)="clickEditMode({idx:i})">
+                <p class="text-green-500">編集</p>
               </button>
             </div>
           }
@@ -48,6 +56,9 @@ export class WithStorageSyncComponent {
 
   $user = signal<string>('');
   $task = signal<string>('');
+  $editTodo = signal<number>(-1);
+  $editUser = signal<string>('');
+  $editTask = signal<string>('');
   private readonly todoSignalStore = inject(TodoSignalStore);
   $todos = this.todoSignalStore.todos;
 
@@ -56,6 +67,22 @@ export class WithStorageSyncComponent {
 
     this.$user.set('');
     this.$task.set('');
+  }
+
+  clickEditMode({idx}: { idx: number }): void {
+    if (this.$editTodo() === -1) {
+      this.$editTodo.set(idx);
+
+      this.$editUser.set(this.$todos()[idx].user)
+      this.$editTask.set(this.$todos()[idx].task)
+    } else {
+      this.todoSignalStore.editTask({idx, editTodo: {user: this.$editUser(), task: this.$editTask()}})
+
+      this.$editTodo.set(-1);
+
+      this.$editUser.set('')
+      this.$editTask.set('')
+    }
   }
 
   clickRemoveTask(idx: number): void {

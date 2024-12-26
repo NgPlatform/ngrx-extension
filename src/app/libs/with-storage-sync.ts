@@ -2,7 +2,6 @@ import {getState, patchState, signalStoreFeature, withHooks, withMethods} from '
 import {effect} from '@angular/core';
 
 export type TConfig = {
-  initialize: boolean,
   sync: boolean,
 }
 
@@ -10,11 +9,17 @@ export type TStorageItem<T> = {
   [key in string]: T
 }
 
+
+/**
+ * e.g.
+ * keys:[{app:['todos','drink']}]
+ */
 export function withStorageSync<T>(storage: Storage, key: string, config: Partial<TConfig>) {
 
   return signalStoreFeature(
     withMethods((store) => ({
 
+      // write to storage
       writeToStorage(): void {
         const state = getState(store) as TStorageItem<T>;
 
@@ -28,11 +33,10 @@ export function withStorageSync<T>(storage: Storage, key: string, config: Partia
           throw new Error(`state[${key}] type is undefined`);
         }
 
-        storage.removeItem(key);
         storage.setItem(key, JSON.stringify(state[key]));
       },
 
-      readToStorage(): void {
+      readFromStorage(): void {
         const item: string | null = storage.getItem(key);
 
         if (item === null) {
@@ -52,9 +56,7 @@ export function withStorageSync<T>(storage: Storage, key: string, config: Partia
     withHooks({
       onInit(store) {
 
-        if (config.initialize) {
-          store.readToStorage();
-        }
+        store.readFromStorage();
 
         if (config.sync) {
 

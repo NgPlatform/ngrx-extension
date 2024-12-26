@@ -18,7 +18,7 @@ const sampleData: TTodo[] = [
 ]
 
 export const TodoSignalStore = signalStore(
-  withState<{ todos: TTodo[] }>({todos: [...sampleData]}),
+  withState<{ todos: TTodo[] }>({todos: []}),
   withStorageSync<TTodo[]>(localStorage, 'todos', {sync: true}),
   withMethods((store) => ({
     addTask({todo}: { todo: TTodo }) {
@@ -28,6 +28,14 @@ export const TodoSignalStore = signalStore(
           ...state.todos,
           todo,
         ]
+      }))
+    },
+
+    editTask({idx, editTodo}: { idx: number, editTodo: TTodo }) {
+
+      patchState(store, (state) => ({
+        ...state,
+        todos: state.todos.flatMap((todo, i) => i === idx ? editTodo : todo)
       }))
     },
 
