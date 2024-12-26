@@ -1,34 +1,68 @@
-import {getState, signalStoreFeature, withHooks, withMethods, withProps} from '@ngrx/signals';
+import {getState, patchState, signalStoreFeature, withHooks, withMethods} from '@ngrx/signals';
 import {effect} from '@angular/core';
 
-export const SOURCE =  Symbol('SOURCE')
-
 export type TConfig = {
-  sync:boolean,
+  initialize: boolean,
+  sync: boolean,
 }
 
-export function withStorageSync(storage:Storage,key:string,config:Partial<TConfig>){
+export type TStorageItem<T> = {
+  [key in string]: T
+}
+
+export function withStorageSync<T>(storage: Storage, key: string, config: Partial<TConfig>) {
+
   return signalStoreFeature(
-    withProps((store) => ({[SOURCE]:key})),
     withMethods((store) => ({
 
-      writeToStorage():void{
-        const state = getState(store);
+      writeToStorage(): void {
+        const state = getState(store) as TStorageItem<T>;
 
-        console.log('write to storage',state);
+        // Check if the state contains the specified key
+        if (!state.hasOwnProperty(key)) {
+          throw new Error(`[${key}] ${key} not found`);
+        }
 
-        storage.setItem(key,JSON.stringify(state));
+        // Ensure that the value for the key is not undefined
+        if (typeof state[key] === 'undefined') {
+          throw new Error(`state[${key}] type is undefined`);
+        }
+
+        storage.removeItem(key);
+        storage.setItem(key, JSON.stringify(state[key]));
       },
 
-    })),
-    withHooks({
-      onInit(store){
-        if(config.sync){
+      readToStorage(): void {
+        const item: string | null = storage.getItem(key);
 
-          // storeの状態を見て自動更新を行う。
+        if (item === null) {
+          return
+        }
+
+        patchState(store, ((state) => {
+          return {
+            ...state,
+            [key]: JSON.parse(item),
+          }
+        }))
+      }
+
+    })),
+
+    withHooks({
+      onInit(store) {
+
+        if (config.initialize) {
+          store.readToStorage();
+        }
+
+        if (config.sync) {
+
+          // Set up an effect to synchronize state changes to storage if sync is enabled
           effect(() => ((_state) => {
             store.writeToStorage()
           })(getState(store)))
+
         }
       },
     })
