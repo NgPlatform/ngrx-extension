@@ -5,6 +5,6 @@ import {AppState, initialAppState} from './model';
 
 export const ShopSignalStore = signalStore(
   withState<AppState>(initialAppState),
-  withStorageSync(localStorage, ['user', 'products', 'cart'], {sync: true}),
+  withStorageSync(localStorage, [{'user': ['id', 'name']}, 'products', 'cart'], '', {sync: true}),
   withMethods(() => ({})),
 )

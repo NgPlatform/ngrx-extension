@@ -13,7 +13,7 @@ type TNodeItem = string | { [key in string]: TNodeItem[] };
  * e.g.
  * keys:[{app:['todos':{'task':[ 'user' ]},'drink']}]
  */
-export function withStorageSync(storage: Storage, nodes: TNodeItem[], config: Partial<TConfig>) {
+export function withStorageSync(storage: Storage, nodes: TNodeItem[], prefix: string, config: Partial<TConfig>) {
 
   return signalStoreFeature(
     withMethods((store) => ({
@@ -22,7 +22,7 @@ export function withStorageSync(storage: Storage, nodes: TNodeItem[], config: Pa
       writeToStorage(): void {
         const state = getState(store) as Record<string, unknown>
 
-        wDfs(state, nodes, '', (key, keys, state) => {
+        wDfs(state, nodes, prefix, (key, keys, state) => {
           if (!(state as Record<string, object>).hasOwnProperty(key)) {
             throw new Error(`[${key}] ${key} not found`);
           }
@@ -38,20 +38,17 @@ export function withStorageSync(storage: Storage, nodes: TNodeItem[], config: Pa
 
       readFromStorage(): void {
 
-        rDfs(nodes, '', ((key, keys) => {
-          const item: string | null = storage.getItem(key);
+        rDfs(nodes, prefix, ((key, keys) => {
+          const item: string | null = storage.getItem(keys);
 
           if (item === null) {
             return
           }
 
-          const recordState = createObject(item, keys.split('-').filter(x => x !== ''), keys.split('-').filter(x => x !== '').length - 1, {});
+          const recordState = createObject(item, keys.split('-').filter(x => x !== prefix), keys.split('-').filter(x => x !== prefix).length - 1, {});
+
 
           patchState(store, ((state) => {
-
-            console.log('recordState', recordState);
-            console.log('state', R.mergeDeep(state, recordState));
-
             return R.mergeDeep(state, recordState);
           }))
 
@@ -107,12 +104,18 @@ function rDfs(nodes: TNodeItem[], keys: string, callback: (key: string, keys: st
 
 function createObject(item: string, keys: string[], idx: number, state: Record<string, unknown>): Record<string, unknown> {
   if (idx === 0) {
+    console.log('idx === 0', state);
     return {
-      [keys[idx]]: JSON.parse(item),
+      [keys[idx]]: state,
     }
   }
 
   const recordState = {[keys[idx]]: state};
-  idx -= idx;
+
+  if (idx === keys.length - 1) {
+    recordState[keys[idx]] = JSON.parse(item);
+  }
+
+  idx -= 1;
   return createObject(item, keys, idx, recordState);
 }
