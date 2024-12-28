@@ -37,41 +37,43 @@ export function withStorageSync(storage: Storage, nodes: TNodeItem[], prefix: st
 
       // storageにストアのデータを書き込む
       writeToStorage(): void {
-        const state = getState(store) as Record<string, unknown>
+        const currentState = getState(store) as Record<string, unknown>
 
-        wDfs(state, nodes, prefix, (key, keys, state) => {
+        writeDfs(currentState, nodes, prefix, (key, fullKeyPath, objectState) => {
 
           // ストアにkeyがない場合
-          if (!(state as Record<string, object>).hasOwnProperty(key)) {
+          if (!(objectState as Record<string, object>).hasOwnProperty(key)) {
             throw new Error(`[${key}] ${key} not found`);
           }
 
           // ストアにkeyはあるがundefinedの時
           // todo undefinedの時はエラーではなくreturnした方が良さそう
-          if (typeof (state as Record<string, object>)[key] === 'undefined') {
+          if (typeof (objectState as Record<string, object>)[key] === 'undefined') {
             throw new Error(`state[${key}] type is undefined`);
           }
 
-          storage.setItem(keys, JSON.stringify((state as Record<string, object>)[key]));
+          const value: object = (objectState as Record<string, object>)[key];
+
+          storage.setItem(fullKeyPath, JSON.stringify(value));
         })
       },
 
       // storageからデータを読み取りストアに保存
       readFromStorage(): void {
 
-        rDfs(nodes, prefix, ((keys) => {
-          const item: string | null = storage.getItem(keys);
+        readDfs(nodes, prefix, ((fullKeyPath) => {
+          const item: string | null = storage.getItem(fullKeyPath);
 
           if (item === null) {
             return
           }
 
-          const nodes = keys.split('-').filter(x => x !== prefix);
+          const slicedKeys: string[] = fullKeyPath.split('-').filter(x => x !== prefix);
 
-          const recordState = createObject(item, nodes, nodes.length, {});
+          const recordState = createObject(item, slicedKeys, slicedKeys.length, {});
 
-          patchState(store, ((state) => {
-            return R.mergeDeep(state, recordState);
+          patchState(store, ((prevState) => {
+            return R.mergeDeep(prevState, recordState);
           }))
         }))
 
@@ -101,19 +103,24 @@ export function withStorageSync(storage: Storage, nodes: TNodeItem[], prefix: st
  * ストアの状態を深さ優先探索 (DFS) で巡回し、対象のキーやノードが見つかるたびに
  * コールバックを呼び出すための補助関数です。
  *
- * @param state   現在のストアの状態オブジェクト
+ * @param currentState   現在のストアの状態オブジェクト
  * @param nodes   対象とするキー名またはネストしたキー構造
- * @param keys    prefix や親ノードから連結されたキー文字列
- * @param callback キーが見つかった際に呼ばれるコールバック (key, keys, state を引数に取る)
+ * @param prefix    prefix や親ノードから連結されたキー文字列
+ * @param callback キーが見つかった際に呼ばれるコールバック (key, fullKeyPath, objectState を引数に取る)
  */
-function wDfs(state: Record<string, unknown>, nodes: TNodeItem[], keys: string, callback: (key: string, keys: string, state: unknown) => void): void {
+function writeDfs(currentState: Record<string, unknown>, nodes: TNodeItem[], prefix: string, callback: (key: string, fullKeyPath: string, objectState: unknown) => void): void {
   nodes.forEach((node) => {
     if (typeof node === 'string') {
+
+      const fullKeyPath = prefix === '' ? node : `${prefix}-${node}`;
       // 現在のnodeが末尾であればcallback関数を呼び出しストレージに取得したデータを書き込む
-      callback(node, keys === '' ? node : `${keys}-${node}`, state);
+      callback(node, fullKeyPath, currentState);
     } else {
       for (const [key, childNode] of Object.entries(node)) {
-        wDfs(state[key] as Record<string, unknown>, childNode, keys === '' ? key : `${keys}-${key}`, callback);
+        const nestedState = currentState[key] as Record<string, unknown>;
+        const newPrefix = prefix === '' ? key : `${prefix}-${key}`;
+
+        writeDfs(nestedState, childNode, newPrefix, callback);
       }
     }
   })
@@ -125,16 +132,18 @@ function wDfs(state: Record<string, unknown>, nodes: TNodeItem[], keys: string, 
  * DFS (深さ優先探索) で探して、キー名が確定するたびにコールバックを呼び出す補助関数
  *
  * @param nodes    対象とするキー名またはネストしたキー構造
- * @param keys     prefix や親ノードを連結したキー文字列
+ * @param prefix     prefix や親ノードを連結したキー文字列
  * @param callback キーが見つかった際に呼ばれるコールバック (最終的なキーを引数に取る)
  */
-function rDfs(nodes: TNodeItem[], keys: string, callback: (keys: string) => void): void {
+function readDfs(nodes: TNodeItem[], prefix: string, callback: (fullKeyPath: string) => void): void {
   nodes.forEach((node) => {
     if (typeof node === 'string') {
-      callback(keys === '' ? node : `${keys}-${node}`);
+      const fullPathKey = prefix === '' ? node : `${prefix}-${node}`
+      callback(fullPathKey);
     } else {
       for (const [key, childNode] of Object.entries(node)) {
-        rDfs(childNode, keys === '' ? key : `${keys}-${node}`, callback);
+        const newPrefix = prefix === '' ? key : `${prefix}-${node}`;
+        readDfs(childNode, newPrefix, callback);
       }
     }
   })
@@ -144,27 +153,26 @@ function rDfs(nodes: TNodeItem[], keys: string, callback: (keys: string) => void
  * Storage から取り出した JSON 文字列をパースし、元の状態ツリーの階層構造に
  * 合わせて再帰的にオブジェクトを作成するための補助関数
  *
- * @param item    Storage に保存されていた JSON 文字列
- * @param nodes   prefix を除去したノード階層リスト (例: ['user', 'profile'])
+ * @param jsonString    Storage に保存されていた JSON 文字列
+ * @param nodesPath   prefix を除去したノード階層リスト (例: ['user', 'profile'])
  * @param nodesIdx 現在処理しているノードのインデックス (末尾から 0 へ向かって処理)
- * @param state   組み立て中の状態オブジェクト
- * @returns       ノード階層を考慮して組み立てたオブジェクト
+ * @param currentState   組み立て中の状態オブジェクト
+ * @returns ノード階層を考慮して組み立てたオブジェクト
  */
-function createObject(item: string, nodes: string[], nodesIdx: number, state: Record<string, unknown>): Record<string, unknown> {
+function createObject(jsonString: string, nodesPath: string[], nodesIdx: number, currentState: Record<string, unknown>): Record<string, unknown> {
 
   if (nodesIdx === 0) {
     return {
-      [nodes[nodesIdx]]: state,
+      [nodesPath[nodesIdx]]: currentState,
     }
   }
 
-  const recordState = {[nodes[nodesIdx]]: state};
+  const recordState = {[nodesPath[nodesIdx]]: currentState};
 
   // 末尾の場合ストレージから取得したデータをパースして当てはめる
-  if (nodesIdx === nodes.length - 1) {
-    recordState[nodes[nodesIdx]] = JSON.parse(item);
+  if (nodesIdx === nodesPath.length - 1) {
+    recordState[nodesPath[nodesIdx]] = JSON.parse(jsonString);
   }
 
-  nodesIdx -= 1;
-  return createObject(item, nodes, nodesIdx, recordState);
+  return createObject(jsonString, nodesPath, nodesIdx - 1, recordState);
 }
