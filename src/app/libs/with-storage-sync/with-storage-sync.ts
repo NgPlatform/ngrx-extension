@@ -37,7 +37,7 @@ export function withStorageSync(storage: Storage, nodes: TNodeItem[], prefix: st
 
       // storageにストアのデータを書き込む
       writeToStorage(): void {
-        const currentState = getState(store) as Record<string, unknown>
+        const currentState = getState(store) as Record<string, unknown>;
 
         writeDfs(currentState, nodes, prefix, (key, fullKeyPath, objectState) => {
 
@@ -62,15 +62,21 @@ export function withStorageSync(storage: Storage, nodes: TNodeItem[], prefix: st
       readFromStorage(): void {
 
         readDfs(nodes, prefix, ((fullKeyPath) => {
-          const item: string | null = storage.getItem(fullKeyPath);
+          const jsonString: string | null = storage.getItem(fullKeyPath);
 
-          if (item === null) {
+          console.log('item', JSON.parse(JSON.stringify(jsonString)));
+
+          if (jsonString === null) {
             return
           }
 
           const slicedKeys: string[] = fullKeyPath.split('-').filter(x => x !== prefix);
 
-          const recordState = createObject(item, slicedKeys, slicedKeys.length, {});
+          console.log('slicedKeys', JSON.parse(JSON.stringify(slicedKeys)));
+
+          const recordState = createObject(jsonString, slicedKeys, slicedKeys.length - 1, {});
+
+          console.log('recordState', JSON.parse(JSON.stringify(recordState)))
 
           patchState(store, ((prevState) => {
             return R.mergeDeep(prevState, recordState);
@@ -90,6 +96,7 @@ export function withStorageSync(storage: Storage, nodes: TNodeItem[], prefix: st
         // 自動同期が有効ならストアの状態を検知して自動でストレージに書き込む。
         if (config.sync) {
           effect(() => ((_state) => {
+            // console.log('_state', _state);
             store.writeToStorage()
           })(getState(store)))
 
@@ -161,17 +168,18 @@ function readDfs(nodes: TNodeItem[], prefix: string, callback: (fullKeyPath: str
  */
 function createObject(jsonString: string, nodesPath: string[], nodesIdx: number, currentState: Record<string, unknown>): Record<string, unknown> {
 
-  if (nodesIdx === 0) {
-    return {
-      [nodesPath[nodesIdx]]: currentState,
-    }
-  }
+  console.log('createObject', nodesPath, nodesIdx);
 
-  const recordState = {[nodesPath[nodesIdx]]: currentState};
+
+  const recordState = {[nodesPath[nodesIdx]]: currentState}; // users:{}
 
   // 末尾の場合ストレージから取得したデータをパースして当てはめる
   if (nodesIdx === nodesPath.length - 1) {
     recordState[nodesPath[nodesIdx]] = JSON.parse(jsonString);
+  }
+
+  if (nodesIdx === 0) {
+    return recordState;
   }
 
   return createObject(jsonString, nodesPath, nodesIdx - 1, recordState);
