@@ -1,7 +1,7 @@
 // sample data is created by ChatGPT
 
 export const initialAppState: AppState = {
-  user: {
+  users: [{
     id: 'user_001',
     name: '山田 太郎',
     profile: {
@@ -11,25 +11,29 @@ export const initialAppState: AppState = {
       },
     },
     isLoggedIn: false,
-  },
+  }],
   products: {
     items: [
       {
         id: 'product_001',
         name: 'Tシャツ',
-        category: {
-          id: 'cat_001',
-          name: 'アパレル',
-        },
+        category: [
+          {
+            id: 'cat_001',
+            name: 'アパレル',
+          }
+        ],
         price: 2000,
       },
       {
         id: 'product_002',
         name: '靴',
-        category: {
-          id: 'cat_002',
-          name: 'シューズ',
-        },
+        category: [
+          {
+            id: 'cat_002',
+            name: 'シューズ',
+          }
+        ],
         price: 5000,
       },
     ],
@@ -73,7 +77,7 @@ export interface ProductItem {
   category: {
     id: string;
     name: string;
-  };
+  }[];
   price: number;
 }
 
@@ -95,7 +99,7 @@ export interface CartItem {
 
 // 4. アプリ全体のState
 export interface AppState {
-  user: UserState;
+  users: UserState[];
   products: ProductState;
   cart: CartState;
 }
