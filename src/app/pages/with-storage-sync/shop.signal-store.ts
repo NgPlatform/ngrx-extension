@@ -1,5 +1,5 @@
 import {signalStore, withMethods, withState} from "@ngrx/signals"
-import {withStorageSync} from '../../libs/with-storage-sync';
+import {withStorageSync} from '../../libs/with-storage-sync/with-storage-sync';
 import {AppState, initialAppState} from './model';
 
 
