@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {getState, signalStore, withState} from '@ngrx/signals';
+import {getState, patchState, signalStore, withState} from '@ngrx/signals';
 import {AppState, initialAppState} from './model';
 import {withStorageSync} from './with-storage-sync';
 
@@ -43,9 +43,6 @@ describe('withStorageSync', () => {
 
       const store = new Store;
 
-      console.log(getState(store));
-      console.log(initialAppState.products.items);
-
       expect(getState(store)).toEqual(
         {
           ...initialAppState,
@@ -55,6 +52,49 @@ describe('withStorageSync', () => {
           }
         }
       );
+    });
+  });
+
+  it('writeToStorage', () => {
+
+    TestBed.runInInjectionContext(() => {
+
+      const Store = signalStore(
+        {protectedState: false},
+        withState<AppState>(initialAppState),
+        withStorageSync(localStorage, ['users'], '', {sync: true}),
+      )
+
+      const store = new Store;
+
+      // users in state add new User;
+      patchState(store, (state) => ({
+        ...state,
+        users: [
+          ...state.users,
+          {
+            id: 'user_001',
+            name: '山田 太郎',
+            profile: {
+              address: {
+                street: '桜通り',
+                city: '東京都',
+              },
+            },
+            isLoggedIn: false,
+          }
+        ]
+      }))
+
+      // get users in localStorage
+      const item = localStorage.getItem('users');
+
+      expect(item).not.toBeNull();
+
+      expect(getState(store)).toEqual({
+        ...initialAppState,
+        users: [...JSON.parse(item!)]
+      })
     });
   });
 })

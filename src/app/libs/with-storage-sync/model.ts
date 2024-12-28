@@ -1,17 +1,19 @@
 // sample data is created by ChatGPT
 
 export const initialAppState: AppState = {
-  users: [{
-    id: 'user_001',
-    name: '山田 太郎',
-    profile: {
-      address: {
-        street: '桜通り',
-        city: '東京都',
+  users: [
+    {
+      id: 'user_001',
+      name: '山田 太郎',
+      profile: {
+        address: {
+          street: '桜通り',
+          city: '東京都',
+        },
       },
-    },
-    isLoggedIn: false,
-  }],
+      isLoggedIn: false,
+    }
+  ],
   products: {
     items: [
       {
