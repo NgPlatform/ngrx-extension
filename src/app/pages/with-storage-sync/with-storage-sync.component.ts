@@ -11,6 +11,7 @@ import {faker} from '@faker-js/faker';
       <h1 class="text-3xl">With Storage Sync</h1>
       <div class="flex gap-2 justify-center flex-col">
         <h2 class="text-2xl">User</h2>
+        <p>key:users</p>
         @for (user of users(); let i = $index; track i) {
           <div class="flex gap-2 items-center">
             <div class="flex gap-2 flex-col border rounded-xl p-5 w-96">
@@ -28,6 +29,7 @@ import {faker} from '@faker-js/faker';
 
       <div class="flex gap-2 justify-center flex-col">
         <h2 class="text-2xl">Products</h2>
+        <p>key: products-items</p>
         @for (item of products().items; let i = $index; track i) {
           <div class="flex gap-2 items-center">
             <div class="flex gap-2 flex-col border rounded-xl p-5 w-96">
