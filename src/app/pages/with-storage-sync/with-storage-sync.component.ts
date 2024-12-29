@@ -18,6 +18,7 @@ import {faker} from '@faker-js/faker';
               <p>userId:{{ user.id }}</p>
             </div>
             <button (click)="deleteUser(i)" class="border-2 border-red-500 p-2 rounded-xl">delete</button>
+            <button (click)="editUser(i)" class="border-2 border-green-500 p-2 rounded-xl">edit</button>
           </div>
         }
         <div>
@@ -25,11 +26,15 @@ import {faker} from '@faker-js/faker';
         </div>
       </div>
 
-      <div class="flex gap-2 flex-col border rounded-xl p-5 w-96">
-        <h2 class="text-2xl">products</h2>
+      <div class="flex gap-2 justify-center flex-col">
+        <h2 class="text-2xl">Products</h2>
         @for (item of products().items; let i = $index; track i) {
-          <p>id:{{ item.id }}</p>
-          <p>name:{{ item.name }}</p>
+          <div class="flex gap-2 items-center">
+            <div class="flex gap-2 flex-col border rounded-xl p-5 w-96">
+              <p>username:{{ item.id }}</p>
+              <p>userId:{{ item.name }}</p>
+            </div>
+          </div>
         }
       </div>
     </div>
@@ -45,11 +50,13 @@ export class WithStorageSyncComponent {
 
   products = this.shopSignalStore.products;
 
-  cart = this.shopSignalStore.cart;
-
 
   addUser = (): void => {
     this.shopSignalStore.addUser({id: faker.string.uuid(), name: faker.person.firstName()})
+  }
+
+  editUser = (idx: number): void => {
+    this.shopSignalStore.editUser(idx, {id: faker.string.uuid(), name: faker.person.firstName()})
   }
 
   deleteUser = (idx: number): void => {

@@ -5,7 +5,7 @@ import {AppState, initialAppState, UserState} from '../../libs/with-storage-sync
 
 export const ShopSignalStore = signalStore(
   withState<AppState>(initialAppState),
-  withStorageSync(localStorage, ['users', {'products': ['items']}, 'cart'], '', {sync: true}),
+  withStorageSync(localStorage, ['users', {'products': ['items']}], '', {sync: true}),
   withMethods((store) => ({
 
     addUser(user: Pick<UserState, 'id' | 'name'>) {
@@ -27,6 +27,21 @@ export const ShopSignalStore = signalStore(
           ]
         }
       });
+    },
+
+    editUser(idx: number, editUser: Pick<UserState, 'id' | 'name'>) {
+      patchState(store, (state) => ({
+        ...state,
+        users: state.users.map((user, i) => {
+          if (i === idx) {
+            return {
+              ...user,
+              ...editUser,
+            }
+          }
+          return user
+        })
+      }));
     },
 
     deleteUser(idx: number) {
