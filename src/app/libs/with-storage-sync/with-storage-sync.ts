@@ -12,108 +12,111 @@ import * as R from 'remeda';
 
 export type TConfig = {
   sync: boolean,
-}
+};
 
-type TNodeItem = string | { [key in string]: TNodeItem[] };
+type TNodeItem = string | { [key: string]: TNodeItem[] };
 
 /**
- * ストアの状態を Storage（localStorage / sessionStorage など）に保存・読み込みし、
- * 状態の変更と同期できるようにするための拡張機能
+ * An extension feature that saves and loads store states to/from Storage (e.g., localStorage or sessionStorage),
+ * and synchronizes state changes automatically if desired.
  *
- * @param storage 同期先となる Storage オブジェクト（localStorage, sessionStorage など）
- * @param nodes   同期対象となる状態のキーまたは階層構造（例: ['user', { settings: ['theme', 'language'] }]）
- * @param prefix  Storage に保存する際のキーの先頭に付与する文字列
- * @param config  オプション設定（sync: true の場合、状態変更時に自動でストレージに書き込む）
- * @returns NgRx Signals のストアに拡張機能を追加するためのオブジェクト
+ * @param storage The Storage object to synchronize with (e.g., localStorage, sessionStorage).
+ * @param nodes   The keys or nested structure of the store state to be synchronized (e.g. ['user', { settings: ['theme', 'language'] }]).
+ * @param prefix  A prefix string attached to the keys when saving to Storage.
+ * @param config  Optional settings (if `sync` is set to true, any state change is automatically written to Storage).
+ * @returns An NgRx Signals store feature object providing methods and hooks for state synchronization.
  */
-export function withStorageSync(storage: Storage, nodes: TNodeItem[], prefix: string, config: Partial<TConfig>): SignalStoreFeature<EmptyFeatureResult, {
-  state: {},
-  props: {},
-  methods: { writeToStorage: () => void, readFromStorage: () => void }
-}> {
-
+export function withStorageSync(
+  storage: Storage,
+  nodes: TNodeItem[],
+  prefix: string,
+  config: Partial<TConfig>
+): SignalStoreFeature<
+  EmptyFeatureResult,
+  {
+    state: {};
+    props: {};
+    methods: { writeToStorage: () => void; readFromStorage: () => void };
+  }
+> {
   return signalStoreFeature(
     withMethods((store) => ({
-
-      // storageにストアのデータを書き込む
+      // Writes the store data to the storage
       writeToStorage(): void {
         const currentState = getState(store) as Record<string, unknown>;
 
         writeDfs(currentState, nodes, prefix, (key, fullKeyPath, objectState) => {
-
-          // ストアにkeyがない場合
+          // If the store does not have the specified key
           if (!(objectState as Record<string, object>).hasOwnProperty(key)) {
             throw new Error(`[${key}] ${key} not found`);
           }
 
-          // ストアにkeyはあるがundefinedの時
-          // todo undefinedの時はエラーではなくreturnした方が良さそう
+          // The store has the key, but it is undefined
+          // todo: Instead of throwing an error, returning early might be preferable
           if (typeof (objectState as Record<string, object>)[key] === 'undefined') {
             throw new Error(`state[${key}] type is undefined`);
           }
 
           const value: object = (objectState as Record<string, object>)[key];
-
           storage.setItem(fullKeyPath, JSON.stringify(value));
-        })
+        });
       },
 
-      // storageからデータを読み取りストアに保存
+      // Reads data from the storage and saves it into the store
       readFromStorage(): void {
-
-        readDfs(nodes, prefix, ((fullKeyPath) => {
+        readDfs(nodes, prefix, (fullKeyPath) => {
           const jsonString: string | null = storage.getItem(fullKeyPath);
 
           if (jsonString === null) {
-            return
+            return;
           }
 
-          const slicedKeys: string[] = fullKeyPath.split('-').filter(x => x !== prefix);
-
+          const slicedKeys: string[] = fullKeyPath.split('-').filter((x) => x !== prefix);
           const recordState = createObject(jsonString, slicedKeys, slicedKeys.length - 1, {});
 
-          patchState(store, ((prevState) => {
+          patchState(store, (prevState) => {
             return R.mergeDeep(prevState, recordState);
-          }))
-        }))
-
+          });
+        });
       }
-
-
     })),
 
     withHooks({
       onInit(store) {
-
         store.readFromStorage();
 
-        // 自動同期が有効ならストアの状態を検知して自動でストレージに書き込む。
+        // If automatic sync is enabled, watch for state changes and write them to storage
         if (config.sync) {
-          effect(() => ((_state) => {
-            store.writeToStorage()
-          })(getState(store)))
-
+          effect(() =>
+            ((_) => {
+              store.writeToStorage();
+            })(getState(store))
+          );
         }
-      },
+      }
     })
-  )
+  );
 }
 
 /**
- * ストアの状態を深さ優先探索 (DFS) で巡回し、対象のキーやノードが見つかるたびに
- * コールバックを呼び出すための補助関数です。
+ * A helper function that traverses the store state in a Depth-First Search (DFS) manner,
+ * calling a callback whenever a target key or node is found.
  *
- * @param currentState   現在のストアの状態オブジェクト
- * @param nodes   対象とするキー名またはネストしたキー構造
- * @param prefix    prefix や親ノードから連結されたキー文字列
- * @param callback キーが見つかった際に呼ばれるコールバック (key, fullKeyPath, objectState を引数に取る)
+ * @param currentState The current store state object.
+ * @param nodes        The keys or nested node structures to traverse.
+ * @param prefix       A combined prefix string from parent nodes, etc.
+ * @param callback     A callback to be invoked when a key is found (taking key, fullKeyPath, objectState).
  */
-function writeDfs(currentState: Record<string, unknown>, nodes: TNodeItem[], prefix: string, callback: (key: string, fullKeyPath: string, objectState: unknown) => void): void {
+function writeDfs(
+  currentState: Record<string, unknown>,
+  nodes: TNodeItem[],
+  prefix: string,
+  callback: (key: string, fullKeyPath: string, objectState: unknown) => void
+): void {
   nodes.forEach((node) => {
     if (typeof node === 'string') {
-
       const fullKeyPath = prefix === '' ? node : `${prefix}-${node}`;
-      // 現在のnodeが末尾であればcallback関数を呼び出しストレージに取得したデータを書き込む
+      // If the current node is the end, call the callback to write data to storage
       callback(node, fullKeyPath, currentState);
     } else {
       for (const [key, childNode] of Object.entries(node)) {
@@ -123,22 +126,21 @@ function writeDfs(currentState: Record<string, unknown>, nodes: TNodeItem[], pre
         writeDfs(nestedState, childNode, newPrefix, callback);
       }
     }
-  })
+  });
 }
 
-
 /**
- * Storage に保存してあるデータを読み込むため、prefix + ノード名を辿りながら
- * DFS (深さ優先探索) で探して、キー名が確定するたびにコールバックを呼び出す補助関数
+ * A helper function that loads data from Storage by traversing prefix + node names in a
+ * DFS manner. Each time a key is determined, the callback is called.
  *
- * @param nodes    対象とするキー名またはネストしたキー構造
- * @param prefix     prefix や親ノードを連結したキー文字列
- * @param callback キーが見つかった際に呼ばれるコールバック (最終的なキーを引数に取る)
+ * @param nodes    The keys or nested structures to search for in DFS.
+ * @param prefix   A combined prefix string from parent nodes, etc.
+ * @param callback A callback that receives the final key (fullKeyPath).
  */
 function readDfs(nodes: TNodeItem[], prefix: string, callback: (fullKeyPath: string) => void): void {
   nodes.forEach((node) => {
     if (typeof node === 'string') {
-      const fullPathKey = prefix === '' ? node : `${prefix}-${node}`
+      const fullPathKey = prefix === '' ? node : `${prefix}-${node}`;
       callback(fullPathKey);
     } else {
       for (const [key, childNode] of Object.entries(node)) {
@@ -146,24 +148,28 @@ function readDfs(nodes: TNodeItem[], prefix: string, callback: (fullKeyPath: str
         readDfs(childNode, newPrefix, callback);
       }
     }
-  })
+  });
 }
 
 /**
- * Storage から取り出した JSON 文字列をパースし、元の状態ツリーの階層構造に
- * 合わせて再帰的にオブジェクトを作成するための補助関数
+ * A helper function that parses a JSON string retrieved from Storage and recursively builds
+ * an object matching the original state tree hierarchy.
  *
- * @param jsonString    Storage に保存されていた JSON 文字列
- * @param nodesPath   prefix を除去したノード階層リスト (例: ['user', 'profile'])
- * @param nodesIdx 現在処理しているノードのインデックス (末尾から 0 へ向かって処理)
- * @param currentState   組み立て中の状態オブジェクト
- * @returns ノード階層を考慮して組み立てたオブジェクト
+ * @param jsonString  The JSON string retrieved from Storage.
+ * @param nodesPath   A list of node keys after removing the prefix (e.g., ['user', 'profile']).
+ * @param nodesIdx    The current node index being processed (moving from the last element to 0).
+ * @param currentState The state object currently being assembled.
+ * @returns The object constructed according to the node hierarchy.
  */
-function createObject(jsonString: string, nodesPath: string[], nodesIdx: number, currentState: Record<string, unknown>): Record<string, unknown> {
+function createObject(
+  jsonString: string,
+  nodesPath: string[],
+  nodesIdx: number,
+  currentState: Record<string, unknown>
+): Record<string, unknown> {
+  const recordState = {[nodesPath[nodesIdx]]: currentState}; // e.g. users: {}
 
-  const recordState = {[nodesPath[nodesIdx]]: currentState}; // users:{}
-
-  // 末尾の場合ストレージから取得したデータをパースして当てはめる
+  // If we're at the last element, parse the data from storage and assign it
   if (nodesIdx === nodesPath.length - 1) {
     recordState[nodesPath[nodesIdx]] = JSON.parse(jsonString);
   }
