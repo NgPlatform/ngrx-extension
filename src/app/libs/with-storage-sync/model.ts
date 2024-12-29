@@ -1,43 +1,17 @@
 // sample data is created by ChatGPT
 
+import {faker} from '@faker-js/faker';
+
 export const initialAppState: AppState = {
   users: [
-    {
-      id: 'user_001',
-      name: '山田 太郎',
-      profile: {
-        address: {
-          street: '桜通り',
-          city: '東京都',
-        },
-      },
-      isLoggedIn: false,
-    }
+    generateUser(),
+    generateUser(),
+    generateUser(),
   ],
   products: {
     items: [
-      {
-        id: 'product_001',
-        name: 'Tシャツ',
-        category: [
-          {
-            id: 'cat_001',
-            name: 'アパレル',
-          }
-        ],
-        price: 2000,
-      },
-      {
-        id: 'product_002',
-        name: '靴',
-        category: [
-          {
-            id: 'cat_002',
-            name: 'シューズ',
-          }
-        ],
-        price: 5000,
-      },
+      generateProductsItem(),
+      generateProductsItem(),
     ],
     selectedProductId: null,
     loading: false,
@@ -52,7 +26,37 @@ export const initialAppState: AppState = {
   },
 };
 
-// 1. ユーザー情報のState
+export function generateUser(): UserState {
+  const profile = {
+    address: {
+      street: 'Sakura Street',
+      city: 'Tokyo',
+    },
+  } as const;
+
+  return {
+    id: faker.string.uuid(),
+    name: faker.person.firstName(),
+    profile: {...profile},
+    isLoggedIn: false,
+  }
+}
+
+export function generateProductsItem(): ProductItem {
+  return {
+    id: faker.string.uuid(),
+    name: faker.food.dish(),
+    category: [
+      {
+        id: faker.string.sample({min: 5, max: 10}),
+        name: faker.word.noun(),
+      }
+    ],
+    price: faker.number.int(),
+  }
+}
+
+
 export interface UserState {
   id: string;
   name: string;
@@ -65,14 +69,12 @@ export interface UserState {
   isLoggedIn: boolean;
 }
 
-// 2. 商品情報のState
 export interface ProductState {
   items: ProductItem[];
   selectedProductId: string | null;
   loading: boolean;
 }
 
-// 商品1件分の型
 export interface ProductItem {
   id: string;
   name: string;
@@ -83,7 +85,6 @@ export interface ProductItem {
   price: number;
 }
 
-// 3. カート情報のState
 export interface CartState {
   items: CartItem[];
   totalAmount: number;
@@ -93,13 +94,11 @@ export interface CartState {
   };
 }
 
-// カートの商品1件分の型
 export interface CartItem {
   productId: string;
   quantity: number;
 }
 
-// 4. アプリ全体のState
 export interface AppState {
   users: UserState[];
   products: ProductState;
