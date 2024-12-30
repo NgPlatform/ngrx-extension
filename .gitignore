@@ -41,6 +41,6 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# libs
-/src/app/libs/dist/
-/src/app/libs/node_modules/
+# libs Compiled output
+/src/app/libs/dist
+/src/app/libs/node_modules
