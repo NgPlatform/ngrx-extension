@@ -40,3 +40,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# libs
+/src/app/libs/dist/
+/src/app/libs/node_modules/
