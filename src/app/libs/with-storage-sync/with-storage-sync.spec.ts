@@ -117,7 +117,7 @@ describe('withStorageSync', () => {
   });
 
 
-  it('syncがfalseの時でwriteToStorage関数を呼び出した時、ストアの状態がローカルストレージに保存されること', () => {
+  it('When `sync` is false and the `writeToStorage` function is called, the store\'s state is saved to localStorage.', () => {
 
     TestBed.runInInjectionContext(() => {
 
@@ -146,7 +146,7 @@ describe('withStorageSync', () => {
   });
 
 
-  it('readFromStorage関数を呼び出した時、ストアの状態が更新されること', () => {
+  it('When the readFromStorage function is called, the store is updated.', () => {
     TestBed.runInInjectionContext(() => {
 
       const Store = signalStore(
