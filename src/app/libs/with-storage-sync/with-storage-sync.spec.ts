@@ -115,4 +115,63 @@ describe('withStorageSync', () => {
 
     });
   });
+
+
+  it('syncがfalseの時でwriteToStorage関数を呼び出した時、ストアの状態がローカルストレージに保存されること', () => {
+
+    TestBed.runInInjectionContext(() => {
+
+      const Store = signalStore(
+        {protectedState: false},
+        withState<AppState>(initialAppState),
+        withStorageSync(localStorage, [{'products': ['items']}], '', {sync: false})
+      );
+
+      const store = new Store();
+
+      expect(localStorage.getItem('products-items')).toBeNull();
+
+      store.writeToStorage();
+
+      expect(getState(store)).toEqual(
+        {
+          ...initialAppState,
+          products: {
+            ...initialAppState.products,
+            items: JSON.parse(localStorage.getItem('products-items')!)
+          }
+        }
+      )
+    });
+  });
+
+
+  it('readFromStorage関数を呼び出した時、ストアの状態が更新されること', () => {
+    TestBed.runInInjectionContext(() => {
+
+      const Store = signalStore(
+        {protectedState: false},
+        withState<AppState>(initialAppState),
+        withStorageSync(localStorage, [{'products': ['items']}], '', {sync: false})
+      )
+
+      const store = new Store();
+
+      expect(getState(store)).toEqual(initialAppState);
+
+      const newItems = [generateProductsItem(), generateProductsItem()];
+
+      localStorage.setItem('products-items', JSON.stringify(newItems));
+
+      store.readFromStorage();
+
+      expect(getState(store)).toEqual({
+        ...initialAppState,
+        products: {
+          ...initialAppState.products,
+          items: newItems
+        }
+      })
+    });
+  });
 });
