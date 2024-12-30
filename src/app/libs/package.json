@@ -1,0 +1,38 @@
+{
+  "name": "@ngplatform/ngrx-extension",
+  "version": "1.0.6",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "package": "npm publish --access public",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ngrx",
+    "ngrx/signals",
+    "extension",
+    "signals"
+  ],
+  "files": [
+    "dist"
+  ],
+  "author": "mzkmnk",
+  "license": "MIT",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NgPlatform/ngrx-extension.git"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@angular/core": "^19.0.0",
+    "@ngrx/signals": "^19.0.0",
+    "@ngrx/store": "^19.0.0",
+    "remeda": "^2.19.0",
+    "rxjs": "~7.8.0"
+  }
+}
