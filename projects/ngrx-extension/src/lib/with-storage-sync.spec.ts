@@ -175,7 +175,7 @@ describe('withStorageSync', () => {
     });
   });
 
-  it('prefixを指定した時、初期化時にストアの状態を保存しているか', () => {
+  it('When specifying a prefix, does it save the store’s state during initialization', () => {
 
     const prefix: string = 'internal' as const;
 
