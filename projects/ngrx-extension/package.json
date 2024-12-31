@@ -1,0 +1,19 @@
+{
+  "name": "@ngplatform/ngrx-extension",
+  "version": "1.0.7",
+  "scripts": {
+    "package": "npm publish --access public"
+  },
+  "peerDependencies": {
+    "@angular/common": "^19.0.0",
+    "@angular/core": "^19.0.0",
+    "@ngrx/signals": "^19.0.0",
+    "@ngrx/store": "^19.0.0",
+    "remeda": "^2.19.0",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}
