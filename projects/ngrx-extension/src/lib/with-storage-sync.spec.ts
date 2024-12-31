@@ -174,4 +174,28 @@ describe('withStorageSync', () => {
       })
     });
   });
+
+  it('prefixを指定した時、初期化時にストアの状態を保存しているか', () => {
+
+    const prefix: string = 'internal' as const;
+
+    TestBed.runInInjectionContext(() => {
+      const Store = signalStore(
+        withState<AppState>(initialAppState),
+        withStorageSync(localStorage, [{'products': ['items']}], prefix, {sync: true})
+      )
+
+      const store = new Store();
+
+      TestBed.flushEffects();
+
+      expect(getState(store)).toEqual({
+        ...initialAppState,
+        products: {
+          ...initialAppState.products,
+          items: JSON.parse(localStorage.getItem(`${prefix}-products-items`)!)
+        }
+      })
+    });
+  });
 });
