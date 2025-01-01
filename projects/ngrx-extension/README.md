@@ -1,8 +1,6 @@
 # NgrxExtension
 
-## Ngrx/Signals Extension
-
-#### withStorageSync
+## Synchronize with storage `withStorageSync`
 
 A feature that listens to store state changes and automatically saves them to localStorage (or sessionStorage).
 
@@ -19,10 +17,12 @@ A feature that listens to store state changes and automatically saves them to lo
  */
 ```
 
+**Example Code**
+
 ```typescript
 export const ShopSignalStore = signalStore(
   withState<AppState>(initialAppState),
   withStorageSync(localStorage, ['users', {'products': ['items']}], '', {sync: true}),
-  withMethods((store) => ({})),
+  withMethods((store) => ({}))
 )
 ```
