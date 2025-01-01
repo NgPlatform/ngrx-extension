@@ -1,0 +1,40 @@
+name: Angular CI
+
+on:
+  pull_request:
+    types: [ opened,ready_for_review,synchronize ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 20.x ]
+
+    steps:
+      - name: repository checkout
+        uses: actions/checkout@v3
+
+      - name: node.js setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix['node-version'] }}
+
+      - name: npm cache settings
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: dependency install
+        run: npm ci
+
+      - name: testing
+        run: npm run test
+
+      - name: angular building
+        run: npm run build

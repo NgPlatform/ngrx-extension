@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build ngrx-extension && ng build ngrx-extension-app",
     "watch": "ng build --watch --configuration development",
     "test": "jest",
     "format:biome": "biome format --write ./src"
