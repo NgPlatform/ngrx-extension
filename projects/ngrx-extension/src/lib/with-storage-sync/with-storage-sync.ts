@@ -16,7 +16,7 @@ export type TConfig = {
   storage: Storage,
   nodes: TNodeItem[],
   prefix: string,
-  sync: boolean,
+  sync?: boolean,
 };
 
 /**
@@ -29,7 +29,7 @@ export type TConfig = {
  * @param config  Optional settings (if `sync` is set to true, any state change is automatically written to Storage).
  * @returns An NgRx Signals store feature object providing methods and hooks for state synchronization.
  */
-export function withStorageSync({storage, nodes, prefix, sync}: TConfig): SignalStoreFeature<
+export function withStorageSync({storage, nodes, prefix, sync = false}: TConfig): SignalStoreFeature<
   EmptyFeatureResult,
   {
     state: {};
