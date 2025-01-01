@@ -17,6 +17,10 @@ export type TConfig = {
   nodes: TNodeItem[],
   prefix: string,
   sync?: boolean,
+  encryption?: {
+    enable: boolean,
+    key: string,
+  }
 };
 
 /**
@@ -26,10 +30,11 @@ export type TConfig = {
  * @param storage The Storage object to synchronize with (e.g., localStorage, sessionStorage).
  * @param nodes   The keys or nested structure of the store state to be synchronized (e.g. ['user', { settings: ['theme', 'language'] }]).
  * @param prefix  A prefix string attached to the keys when saving to Storage.
- * @param config  Optional settings (if `sync` is set to true, any state change is automatically written to Storage).
+ * @param sync    A flag indicating whether to automatically synchronize state changes with Storage.
+ * @param encryption An optional configuration object for enabling encryption.
  * @returns An NgRx Signals store feature object providing methods and hooks for state synchronization.
  */
-export function withStorageSync({storage, nodes, prefix, sync = false}: TConfig): SignalStoreFeature<
+export function withStorageSync({storage, nodes, prefix, sync = false, encryption}: TConfig): SignalStoreFeature<
   EmptyFeatureResult,
   {
     state: {};
@@ -56,7 +61,13 @@ export function withStorageSync({storage, nodes, prefix, sync = false}: TConfig)
           }
 
           const value: object = (objectState as Record<string, object>)[key];
-          storage.setItem(fullKeyPath, JSON.stringify(value));
+
+          // Encrypt the value if the encryption is enabled
+          if (encryption?.enable) {
+            // todo: Implement encryption
+          } else {
+            storage.setItem(fullKeyPath, JSON.stringify(value));
+          }
         });
       },
 
@@ -81,6 +92,18 @@ export function withStorageSync({storage, nodes, prefix, sync = false}: TConfig)
 
     withHooks({
       onInit(store) {
+        // if (true) {
+        console.log('ok');
+        const encoder = new TextEncoder();
+        const keyData = encoder.encode(encryption?.key);
+        window.crypto.subtle.importKey('raw', keyData, {
+          name: 'AES-GCM',
+          length: 256
+        }, true, ['encrypt', 'decrypt']).then((key) => {
+          console.log('key');
+        })
+        // }
+
         store.readFromStorage();
 
         // If automatic sync is enabled, watch for state changes and write them to storage
