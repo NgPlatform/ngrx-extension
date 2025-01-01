@@ -1,7 +1,7 @@
 import {TestBed} from '@angular/core/testing';
 import {getState, patchState, signalStore, withState} from '@ngrx/signals';
-import {AppState, generateProductsItem, initialAppState} from './model';
 import {withStorageSync} from './with-storage-sync';
+import {AppState, generateProductsItem, initialAppState} from '@/testsData/with-storage-sync/model';
 
 describe('withStorageSync', () => {
 
@@ -23,7 +23,12 @@ describe('withStorageSync', () => {
 
       const Store = signalStore(
         withState<AppState>(initialAppState),
-        withStorageSync(localStorage, [{'products': ['items']}], '', {sync: true})
+        withStorageSync({
+          storage: localStorage,
+          nodes: [{'products': ['items']}],
+          prefix: '',
+          sync: true,
+        })
       )
 
       const store = new Store;
@@ -46,7 +51,12 @@ describe('withStorageSync', () => {
       const Store = signalStore(
         {protectedState: false},
         withState<AppState>(initialAppState),
-        withStorageSync(localStorage, [{'products': ['items']}], '', {sync: true})
+        withStorageSync({
+          storage: localStorage,
+          nodes: [{'products': ['items']}],
+          prefix: '',
+          sync: true,
+        })
       );
 
       const store = new Store();
@@ -85,7 +95,12 @@ describe('withStorageSync', () => {
       const Store = signalStore(
         {protectedState: false},
         withState<AppState>(initialAppState),
-        withStorageSync(localStorage, [{'products': ['items']}], '', {sync: false})
+        withStorageSync({
+          storage: localStorage,
+          nodes: [{'products': ['items']}],
+          prefix: '',
+          sync: false,
+        })
       );
 
       const store = new Store();
@@ -124,7 +139,12 @@ describe('withStorageSync', () => {
       const Store = signalStore(
         {protectedState: false},
         withState<AppState>(initialAppState),
-        withStorageSync(localStorage, [{'products': ['items']}], '', {sync: false})
+        withStorageSync({
+          storage: localStorage,
+          nodes: [{'products': ['items']}],
+          prefix: '',
+          sync: false,
+        })
       );
 
       const store = new Store();
@@ -152,7 +172,12 @@ describe('withStorageSync', () => {
       const Store = signalStore(
         {protectedState: false},
         withState<AppState>(initialAppState),
-        withStorageSync(localStorage, [{'products': ['items']}], '', {sync: false})
+        withStorageSync({
+          storage: localStorage,
+          nodes: [{'products': ['items']}],
+          prefix: '',
+          sync: false,
+        })
       )
 
       const store = new Store();
@@ -182,7 +207,12 @@ describe('withStorageSync', () => {
     TestBed.runInInjectionContext(() => {
       const Store = signalStore(
         withState<AppState>(initialAppState),
-        withStorageSync(localStorage, [{'products': ['items']}], prefix, {sync: true})
+        withStorageSync({
+          storage: localStorage,
+          nodes: [{'products': ['items']}],
+          prefix,
+          sync: true,
+        })
       )
 
       const store = new Store();

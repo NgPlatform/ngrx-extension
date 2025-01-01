@@ -1,6 +1,6 @@
 {
   "name": "@ngplatform/ngrx-extension",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "ngrx and ngrx/signals extensions",
   "scripts": {
     "package": "npm publish --access public"

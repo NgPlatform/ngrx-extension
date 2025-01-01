@@ -10,11 +10,14 @@ import {
 import {effect} from '@angular/core';
 import * as R from 'remeda';
 
+type TNodeItem = string | { [key: string]: TNodeItem[] };
+
 export type TConfig = {
+  storage: Storage,
+  nodes: TNodeItem[],
+  prefix: string,
   sync: boolean,
 };
-
-type TNodeItem = string | { [key: string]: TNodeItem[] };
 
 /**
  * An extension feature that saves and loads store states to/from Storage (e.g., localStorage or sessionStorage),
@@ -26,12 +29,7 @@ type TNodeItem = string | { [key: string]: TNodeItem[] };
  * @param config  Optional settings (if `sync` is set to true, any state change is automatically written to Storage).
  * @returns An NgRx Signals store feature object providing methods and hooks for state synchronization.
  */
-export function withStorageSync(
-  storage: Storage,
-  nodes: TNodeItem[],
-  prefix: string,
-  config: Partial<TConfig>
-): SignalStoreFeature<
+export function withStorageSync({storage, nodes, prefix, sync}: TConfig): SignalStoreFeature<
   EmptyFeatureResult,
   {
     state: {};
@@ -86,7 +84,7 @@ export function withStorageSync(
         store.readFromStorage();
 
         // If automatic sync is enabled, watch for state changes and write them to storage
-        if (config.sync) {
+        if (sync) {
           effect(() =>
             ((_) => {
               store.writeToStorage();

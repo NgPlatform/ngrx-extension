@@ -1,11 +1,16 @@
 import {patchState, signalStore, withMethods, withState} from "@ngrx/signals"
-import {AppState, initialAppState, UserState} from '../../../../projects/ngrx-extension/src/lib/model';
 import {withStorageSync} from 'ngrx-extension';
+import {AppState, initialAppState, UserState} from '@/testsData/with-storage-sync/model';
 
 
 export const ShopSignalStore = signalStore(
   withState<AppState>(initialAppState),
-  withStorageSync(localStorage, ['users', {'products': ['items']}], '', {sync: true}),
+  withStorageSync({
+    storage: localStorage,
+    nodes: ['users', {'products': ['items']}],
+    prefix: '',
+    sync: true,
+  }),
   withMethods((store) => ({
 
     addUser(user: Pick<UserState, 'id' | 'name'>) {
