@@ -6,4 +6,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/src/setup-jest.ts'],
   // globalSetup: 'jest-preset-angular/global-setup',
   testMatch: ['<rootDir>/projects/ngrx-extension/src/lib/**/*.spec.ts'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+  },
 };

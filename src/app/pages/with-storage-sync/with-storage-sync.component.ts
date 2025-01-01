@@ -1,7 +1,7 @@
 import {Component, inject} from '@angular/core';
-import {ShopSignalStore} from './shop.signal-store';
 import {FormsModule} from '@angular/forms';
 import {faker} from '@faker-js/faker';
+import {ShopSignalStore} from '@/src/app/pages/with-storage-sync/shop.signal-store';
 
 @Component({
   selector: 'app-with-storage-sync',
