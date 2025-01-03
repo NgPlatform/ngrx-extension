@@ -5,24 +5,10 @@ on:
     types: [ opened,ready_for_review,synchronize ]
 
 jobs:
-  biome:
-    runs-on: ubuntu-latest
-
+  build:
     permissions:
       contents: read
       pull-requests: write
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: mongolyy/reviewdog-action-biome@v1
-        with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review
-
-  build:
-
-    needs:
-      - biome
 
     runs-on: ubuntu-latest
 
@@ -57,6 +43,13 @@ jobs:
 
       - name: Run Biome projects
         run: biome ci ./projects
+
+
+      - name: biome reviewdog
+        uses: mongolyy/reviewdog-action-biome@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
 
       - name: angular building
         run: npm run build
