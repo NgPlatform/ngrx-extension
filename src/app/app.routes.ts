@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 
 export const routes: Routes = [
 	{
@@ -9,7 +9,14 @@ export const routes: Routes = [
 			),
 	},
 	{
-		path:'**',
-		redirectTo:'with-storage-sync'
-	}
+		path: 'patch-state-with-immer',
+		loadComponent: () =>
+			import(
+				'./pages/patch-state-with-immer/patch-state-with-immer.component'
+			).then((M) => M.PatchStateWithImmerComponent),
+	},
+	{
+		path: '**',
+		redirectTo: 'patch-state-with-immer',
+	},
 ];

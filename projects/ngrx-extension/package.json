@@ -1,33 +1,34 @@
 {
-  "name": "@ngplatform/ngrx-extension",
-  "version": "1.2.0",
-  "description": "ngrx and ngrx/signals extensions",
-  "scripts": {
-    "package": "npm publish --access public"
-  },
-  "keywords": [
-    "angular",
-    "signals",
-    "ngrx/signals",
-    "ngrx",
-    "extension",
-    "library"
-  ],
-  "license": "MIT",
-  "repository": {
-    "type": "GitHub",
-    "url": "https://github.com/NgPlatform/ngrx-extension"
-  },
-  "peerDependencies": {
-    "@angular/common": "^19.0.0",
-    "@angular/core": "^19.0.0",
-    "@ngrx/signals": "^19.0.0",
-    "@ngrx/store": "^19.0.0",
-    "remeda": "^2.19.0",
-    "rxjs": "~7.8.0"
-  },
-  "dependencies": {
-    "tslib": "^2.3.0"
-  },
-  "sideEffects": false
+	"name": "@ngplatform/ngrx-extension",
+	"version": "1.3.1",
+	"description": "ngrx and ngrx/signals extensions",
+	"scripts": {
+		"package": "npm publish --access public"
+	},
+	"keywords": [
+		"angular",
+		"signals",
+		"ngrx/signals",
+		"ngrx",
+		"extension",
+		"library"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "GitHub",
+		"url": "https://github.com/NgPlatform/ngrx-extension"
+	},
+	"peerDependencies": {
+		"immer": "^10.1.1",
+		"@angular/common": "^19.0.0",
+		"@angular/core": "^19.0.0",
+		"@ngrx/signals": "^19.0.0",
+		"@ngrx/store": "^19.0.0",
+		"remeda": "^2.19.0",
+		"rxjs": "~7.8.0"
+	},
+	"dependencies": {
+		"tslib": "^2.3.0"
+	},
+	"sideEffects": false
 }
