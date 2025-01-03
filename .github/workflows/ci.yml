@@ -36,17 +36,13 @@ jobs:
       - name: dependency install
         run: npm ci
 
-      - name: biome setup
-        uses: biomejs/setup-biome@v2
-        with:
-          version: latest
-
       - uses: mongolyy/reviewdog-action-biome@v1
         with:
           github_token: ${{ secrets.github_token }}
           reporter: github-pr-review
           biome_flags: './projects'
           fail_on_error: true
+          reviewdog_flags: ''
 
       - name: angular building
         run: npm run build
