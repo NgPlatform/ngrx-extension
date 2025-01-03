@@ -8,7 +8,7 @@ Instead of saving all states, you can appropriately and persistently manage your
 
 **Example Code**
 
-```typescript
+```ts
 export const ShopSignalStore = signalStore(
   withState<AppState>(initialAppState),
   withStorageSync({
@@ -19,6 +19,30 @@ export const ShopSignalStore = signalStore(
   }),
   withMethods((store) => ({
     // ...
+  }))
+)
+```
+
+## `patchStateWithImmer`
+
+This function leverages Immer's `produce` to let you write mutable-looking
+changes in the `updater` callback while actually creating a new, immutable
+state object under the hood.
+
+**Example Code**
+
+```ts
+import {signalStore} from "@ngrx/signals";
+
+export const UserSignalStore = signalStore(
+  withState<{ name: string, age: number }>({name: 'John', age: 30}),
+  withMethods((store) => ({
+    editUser: (name: string) => {
+      // here
+      patchStateWithImmer(store, (state) => {
+        state.user.name = name;
+      });
+    },
   }))
 )
 ```
