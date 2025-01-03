@@ -45,10 +45,7 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           reporter: github-pr-review
-          workdir: ./projects
-
-      - name: Run Biome projects
-        run: biome ci ./projects
+          biome_flags: './projects'
 
       - name: angular building
         run: npm run build
