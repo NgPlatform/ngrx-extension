@@ -40,5 +40,12 @@ jobs:
       - name: Run Biome projects
         run: biome ci ./projects
 
+      - uses: mongolyy/reviewdog-action-biome@v1
+        if: always()
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+          workdir: ./projects
+
       - name: angular building
         run: npm run build
