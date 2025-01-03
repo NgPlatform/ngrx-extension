@@ -43,3 +43,20 @@ jobs:
 
       - name: angular building
         run: npm run build
+
+  biome:
+    needs:
+      - build
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mongolyy/reviewdog-action-biome@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
