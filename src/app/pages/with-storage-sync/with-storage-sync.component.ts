@@ -1,12 +1,12 @@
-import {Component, inject} from '@angular/core';
-import {FormsModule} from '@angular/forms';
-import {faker} from '@faker-js/faker';
-import {ShopSignalStore} from '@/src/app/pages/with-storage-sync/shop.signal-store';
+import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { faker } from '@faker-js/faker';
+import { ShopSignalStore } from '@/src/app/pages/with-storage-sync/shop.signal-store';
 
 @Component({
-  selector: 'app-with-storage-sync',
-  providers: [ShopSignalStore],
-  template: `
+	selector: 'app-with-storage-sync',
+	providers: [ShopSignalStore],
+	template: `
     <div class="flex gap-4 flex-col p-3">
       <h1 class="text-3xl">With Storage Sync</h1>
       <div class="flex gap-2 justify-center flex-col">
@@ -41,27 +41,30 @@ import {ShopSignalStore} from '@/src/app/pages/with-storage-sync/shop.signal-sto
       </div>
     </div>
   `,
-  imports: [
-    FormsModule
-  ]
+	imports: [FormsModule],
 })
 export class WithStorageSyncComponent {
-  private readonly shopSignalStore = inject(ShopSignalStore);
+	private readonly shopSignalStore = inject(ShopSignalStore);
 
-  users = this.shopSignalStore.users;
+	users = this.shopSignalStore.users;
 
-  products = this.shopSignalStore.products;
+	products = this.shopSignalStore.products;
 
+	addUser = (): void => {
+		this.shopSignalStore.addUser({
+			id: faker.string.uuid(),
+			name: faker.person.firstName(),
+		});
+	};
 
-  addUser = (): void => {
-    this.shopSignalStore.addUser({id: faker.string.uuid(), name: faker.person.firstName()})
-  }
+	editUser = (idx: number): void => {
+		this.shopSignalStore.editUser(idx, {
+			id: faker.string.uuid(),
+			name: faker.person.firstName(),
+		});
+	};
 
-  editUser = (idx: number): void => {
-    this.shopSignalStore.editUser(idx, {id: faker.string.uuid(), name: faker.person.firstName()})
-  }
-
-  deleteUser = (idx: number): void => {
-    this.shopSignalStore.deleteUser(idx)
-  }
+	deleteUser = (idx: number): void => {
+		this.shopSignalStore.deleteUser(idx);
+	};
 }

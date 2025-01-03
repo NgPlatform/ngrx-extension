@@ -9,7 +9,7 @@ export const routes: Routes = [
 			),
 	},
 	{
-		path:'**',
-		redirectTo:'with-storage-sync'
-	}
+		path: '**',
+		redirectTo: 'with-storage-sync',
+	},
 ];
