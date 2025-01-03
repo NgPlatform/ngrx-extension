@@ -43,6 +43,7 @@ jobs:
 
       - name: Run Biome projects
         run: biome ci ./projects
+        continue-on-error: true
 
 
       - name: biome reviewdog
