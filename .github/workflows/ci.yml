@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: repository checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: node.js setup
         uses: actions/setup-node@v3
@@ -33,8 +33,13 @@ jobs:
       - name: dependency install
         run: npm ci
 
-      - name: testing
-        run: npm run test
+      - name: biome setup
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+
+      - name: Run Biome projects
+        run: biome ci ./projects
 
       - name: angular building
         run: npm run build
