@@ -6,10 +6,6 @@ on:
 
 jobs:
   build:
-    permissions:
-      contents: read
-      pull-requests: write
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -36,21 +32,8 @@ jobs:
       - name: dependency install
         run: npm ci
 
-      - name: biome setup
-        uses: biomejs/setup-biome@v2
-        with:
-          version: latest
-
       - name: Run Biome projects
         run: biome ci ./projects
-        continue-on-error: true
-
-
-      - name: biome reviewdog
-        uses: mongolyy/reviewdog-action-biome@v1
-        with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review
 
       - name: angular building
         run: npm run build
