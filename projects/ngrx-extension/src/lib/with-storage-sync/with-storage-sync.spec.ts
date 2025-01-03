@@ -7,7 +7,8 @@ import { TestBed } from '@angular/core/testing';
 import { getState, patchState, signalStore, withState } from '@ngrx/signals';
 import { withStorageSync } from './with-storage-sync';
 
-describe('withStorageSync', () => {
+// todo
+describe('withStorageSync test', () => {
 	beforeEach(() => {
 		localStorage.clear();
 	});
