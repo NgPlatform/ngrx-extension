@@ -45,9 +45,6 @@ jobs:
         run: npm run build
 
   biome:
-    needs:
-      - build
-
     runs-on: ubuntu-latest
 
     permissions:
