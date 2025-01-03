@@ -2,7 +2,7 @@ import {
 	type AppState,
 	generateProductsItem,
 	initialAppState,
-} from '@/testsData/with-storage-sync/model';
+} from '@/testsData/model';
 import { TestBed } from '@angular/core/testing';
 import { getState, patchState, signalStore, withState } from '@ngrx/signals';
 import { withStorageSync } from './with-storage-sync';
