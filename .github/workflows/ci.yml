@@ -32,6 +32,11 @@ jobs:
       - name: dependency install
         run: npm ci
 
+      - name: biome setup
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+
       - name: Run Biome projects
         run: biome ci ./projects
 
