@@ -1,6 +1,6 @@
 import {patchState, signalStore, withMethods, withState} from "@ngrx/signals"
-import {withStorageSync} from 'ngrx-extension';
 import {AppState, initialAppState, UserState} from '@/testsData/with-storage-sync/model';
+import {withStorageSync} from '@/projects/ngrx-extension/src/lib/with-storage-sync/with-storage-sync';
 
 
 export const ShopSignalStore = signalStore(
