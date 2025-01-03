@@ -42,7 +42,6 @@ jobs:
           reporter: github-pr-review
           biome_flags: './projects'
           fail_on_error: true
-          reviewdog_flags: ''
 
       - name: angular building
         run: npm run build
