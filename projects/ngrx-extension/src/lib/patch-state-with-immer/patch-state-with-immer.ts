@@ -1,5 +1,5 @@
-import {getState, patchState, WritableStateSource} from '@ngrx/signals';
-import {produce} from "immer";
+import { type WritableStateSource, getState, patchState } from '@ngrx/signals';
+import { produce } from 'immer';
 
 /**
  * This function leverages Immer's `produce` to let you write mutable-looking
@@ -15,13 +15,15 @@ import {produce} from "immer";
  *});
  * ```
  */
-export function patchStateWithImmer<State extends object>(store: WritableStateSource<State>, updater: (cloned: State) => void): void {
+export function patchStateWithImmer<State extends object>(
+	store: WritableStateSource<State>,
+	updater: (cloned: State) => void,
+): void {
+	const state: State = getState(store);
 
-    const state: State = getState(store);
+	const next = produce(state, (draft: State) => {
+		updater(draft);
+	});
 
-    const next = produce(state, (draft: State) => {
-        updater(draft);
-    })
-
-    patchState(store, next);
+	patchState(store, next);
 }

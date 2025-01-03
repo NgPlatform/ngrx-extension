@@ -1,10 +1,10 @@
+import {
+	type AppState,
+	type UserState,
+	initialAppState,
+} from '@/testsData/with-storage-sync/model';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { withStorageSync } from 'ngrx-extension';
-import {
-	AppState,
-	initialAppState,
-	UserState,
-} from '@/testsData/with-storage-sync/model';
 
 export const ShopSignalStore = signalStore(
 	withState<AppState>(initialAppState),

@@ -1,22 +1,22 @@
+import { effect } from '@angular/core';
 import {
-  EmptyFeatureResult,
-  getState,
-  patchState,
-  SignalStoreFeature,
-  signalStoreFeature,
-  withHooks,
-  withMethods
+	type EmptyFeatureResult,
+	type SignalStoreFeature,
+	getState,
+	patchState,
+	signalStoreFeature,
+	withHooks,
+	withMethods,
 } from '@ngrx/signals';
-import {effect} from '@angular/core';
 import * as R from 'remeda';
 
 type TNodeItem = string | { [key: string]: TNodeItem[] };
 
 export type TConfig = {
-  storage: Storage,
-  nodes: TNodeItem[],
-  prefix: string,
-  sync: boolean,
+	storage: Storage;
+	nodes: TNodeItem[];
+	prefix: string;
+	sync: boolean;
 };
 
 /**
@@ -29,71 +29,91 @@ export type TConfig = {
  * @param config  Optional settings (if `sync` is set to true, any state change is automatically written to Storage).
  * @returns An NgRx Signals store feature object providing methods and hooks for state synchronization.
  */
-export function withStorageSync({storage, nodes, prefix, sync}: TConfig): SignalStoreFeature<
-  EmptyFeatureResult,
-  {
-    state: {};
-    props: {};
-    methods: { writeToStorage: () => void; readFromStorage: () => void };
-  }
+export function withStorageSync({
+	storage,
+	nodes,
+	prefix,
+	sync,
+}: TConfig): SignalStoreFeature<
+	EmptyFeatureResult,
+	{
+		state: {};
+		props: {};
+		methods: { writeToStorage: () => void; readFromStorage: () => void };
+	}
 > {
-  return signalStoreFeature(
-    withMethods((store) => ({
-      // Writes the store data to the storage
-      writeToStorage(): void {
-        const currentState = getState(store) as Record<string, unknown>;
+	return signalStoreFeature(
+		withMethods((store) => ({
+			// Writes the store data to the storage
+			writeToStorage(): void {
+				const currentState = getState(store) as Record<string, unknown>;
 
-        writeDfs(currentState, nodes, prefix, (key, fullKeyPath, objectState) => {
-          // If the store does not have the specified key
-          if (!(objectState as Record<string, object>).hasOwnProperty(key)) {
-            throw new Error(`[${key}] ${key} not found`);
-          }
+				writeDfs(
+					currentState,
+					nodes,
+					prefix,
+					(key, fullKeyPath, objectState) => {
+						// If the store does not have the specified key
+						if (!(objectState as Record<string, object>).hasOwnProperty(key)) {
+							throw new Error(`[${key}] ${key} not found`);
+						}
 
-          // The store has the key, but it is undefined
-          // todo: Instead of throwing an error, returning early might be preferable
-          if (typeof (objectState as Record<string, object>)[key] === 'undefined') {
-            throw new Error(`state[${key}] type is undefined`);
-          }
+						// The store has the key, but it is undefined
+						// todo: Instead of throwing an error, returning early might be preferable
+						if (
+							typeof (objectState as Record<string, object>)[key] ===
+							'undefined'
+						) {
+							throw new Error(`state[${key}] type is undefined`);
+						}
 
-          const value: object = (objectState as Record<string, object>)[key];
-          storage.setItem(fullKeyPath, JSON.stringify(value));
-        });
-      },
+						const value: object = (objectState as Record<string, object>)[key];
+						storage.setItem(fullKeyPath, JSON.stringify(value));
+					},
+				);
+			},
 
-      // Reads data from the storage and saves it into the store
-      readFromStorage(): void {
-        readDfs(nodes, prefix, (fullKeyPath) => {
-          const jsonString: string | null = storage.getItem(fullKeyPath);
+			// Reads data from the storage and saves it into the store
+			readFromStorage(): void {
+				readDfs(nodes, prefix, (fullKeyPath) => {
+					const jsonString: string | null = storage.getItem(fullKeyPath);
 
-          if (jsonString === null) {
-            return;
-          }
+					if (jsonString === null) {
+						return;
+					}
 
-          const slicedKeys: string[] = fullKeyPath.split('-').filter((x) => x !== prefix);
-          const recordState = createObject(jsonString, slicedKeys, slicedKeys.length - 1, {});
+					const slicedKeys: string[] = fullKeyPath
+						.split('-')
+						.filter((x) => x !== prefix);
+					const recordState = createObject(
+						jsonString,
+						slicedKeys,
+						slicedKeys.length - 1,
+						{},
+					);
 
-          patchState(store, (prevState) => {
-            return R.mergeDeep(prevState, recordState);
-          });
-        });
-      }
-    })),
+					patchState(store, (prevState) => {
+						return R.mergeDeep(prevState, recordState);
+					});
+				});
+			},
+		})),
 
-    withHooks({
-      onInit(store) {
-        store.readFromStorage();
+		withHooks({
+			onInit(store) {
+				store.readFromStorage();
 
-        // If automatic sync is enabled, watch for state changes and write them to storage
-        if (sync) {
-          effect(() =>
-            ((_) => {
-              store.writeToStorage();
-            })(getState(store))
-          );
-        }
-      }
-    })
-  );
+				// If automatic sync is enabled, watch for state changes and write them to storage
+				if (sync) {
+					effect(() =>
+						((_) => {
+							store.writeToStorage();
+						})(getState(store)),
+					);
+				}
+			},
+		}),
+	);
 }
 
 /**
@@ -106,25 +126,25 @@ export function withStorageSync({storage, nodes, prefix, sync}: TConfig): Signal
  * @param callback     A callback to be invoked when a key is found (taking key, fullKeyPath, objectState).
  */
 function writeDfs(
-  currentState: Record<string, unknown>,
-  nodes: TNodeItem[],
-  prefix: string,
-  callback: (key: string, fullKeyPath: string, objectState: unknown) => void
+	currentState: Record<string, unknown>,
+	nodes: TNodeItem[],
+	prefix: string,
+	callback: (key: string, fullKeyPath: string, objectState: unknown) => void,
 ): void {
-  nodes.forEach((node) => {
-    if (typeof node === 'string') {
-      const fullKeyPath = prefix === '' ? node : `${prefix}-${node}`;
-      // If the current node is the end, call the callback to write data to storage
-      callback(node, fullKeyPath, currentState);
-    } else {
-      for (const [key, childNode] of Object.entries(node)) {
-        const nestedState = currentState[key] as Record<string, unknown>;
-        const newPrefix = prefix === '' ? key : `${prefix}-${key}`;
+	nodes.forEach((node) => {
+		if (typeof node === 'string') {
+			const fullKeyPath = prefix === '' ? node : `${prefix}-${node}`;
+			// If the current node is the end, call the callback to write data to storage
+			callback(node, fullKeyPath, currentState);
+		} else {
+			for (const [key, childNode] of Object.entries(node)) {
+				const nestedState = currentState[key] as Record<string, unknown>;
+				const newPrefix = prefix === '' ? key : `${prefix}-${key}`;
 
-        writeDfs(nestedState, childNode, newPrefix, callback);
-      }
-    }
-  });
+				writeDfs(nestedState, childNode, newPrefix, callback);
+			}
+		}
+	});
 }
 
 /**
@@ -135,18 +155,22 @@ function writeDfs(
  * @param prefix   A combined prefix string from parent nodes, etc.
  * @param callback A callback that receives the final key (fullKeyPath).
  */
-function readDfs(nodes: TNodeItem[], prefix: string, callback: (fullKeyPath: string) => void): void {
-  nodes.forEach((node) => {
-    if (typeof node === 'string') {
-      const fullPathKey = prefix === '' ? node : `${prefix}-${node}`;
-      callback(fullPathKey);
-    } else {
-      for (const [key, childNode] of Object.entries(node)) {
-        const newPrefix = prefix === '' ? key : `${prefix}-${node}`;
-        readDfs(childNode, newPrefix, callback);
-      }
-    }
-  });
+function readDfs(
+	nodes: TNodeItem[],
+	prefix: string,
+	callback: (fullKeyPath: string) => void,
+): void {
+	nodes.forEach((node) => {
+		if (typeof node === 'string') {
+			const fullPathKey = prefix === '' ? node : `${prefix}-${node}`;
+			callback(fullPathKey);
+		} else {
+			for (const [key, childNode] of Object.entries(node)) {
+				const newPrefix = prefix === '' ? key : `${prefix}-${node}`;
+				readDfs(childNode, newPrefix, callback);
+			}
+		}
+	});
 }
 
 /**
@@ -160,21 +184,21 @@ function readDfs(nodes: TNodeItem[], prefix: string, callback: (fullKeyPath: str
  * @returns The object constructed according to the node hierarchy.
  */
 function createObject(
-  jsonString: string,
-  nodesPath: string[],
-  nodesIdx: number,
-  currentState: Record<string, unknown>
+	jsonString: string,
+	nodesPath: string[],
+	nodesIdx: number,
+	currentState: Record<string, unknown>,
 ): Record<string, unknown> {
-  const recordState = {[nodesPath[nodesIdx]]: currentState}; // e.g. users: {}
+	const recordState = { [nodesPath[nodesIdx]]: currentState }; // e.g. users: {}
 
-  // If we're at the last element, parse the data from storage and assign it
-  if (nodesIdx === nodesPath.length - 1) {
-    recordState[nodesPath[nodesIdx]] = JSON.parse(jsonString);
-  }
+	// If we're at the last element, parse the data from storage and assign it
+	if (nodesIdx === nodesPath.length - 1) {
+		recordState[nodesPath[nodesIdx]] = JSON.parse(jsonString);
+	}
 
-  if (nodesIdx === 0) {
-    return recordState;
-  }
+	if (nodesIdx === 0) {
+		return recordState;
+	}
 
-  return createObject(jsonString, nodesPath, nodesIdx - 1, recordState);
+	return createObject(jsonString, nodesPath, nodesIdx - 1, recordState);
 }
