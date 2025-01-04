@@ -7,7 +7,7 @@ import { TestBed } from '@angular/core/testing';
 import { getState, patchState, signalStore, withState } from '@ngrx/signals';
 import { withStorageSync } from './with-storage-sync';
 
-describe('withStorageSync test', () => {
+describe('withStorageSync', () => {
 	beforeEach(() => {
 		localStorage.clear();
 	});
@@ -80,7 +80,7 @@ describe('withStorageSync test', () => {
 				...initialAppState,
 				products: {
 					...initialAppState.products,
-					items: JSON.parse(localStorage.getItem('products-items')!),
+					items: JSON.parse(localStorage.getItem('products-items') ?? '[]'),
 				},
 			});
 		});
@@ -149,7 +149,7 @@ describe('withStorageSync test', () => {
 				...initialAppState,
 				products: {
 					...initialAppState.products,
-					items: JSON.parse(localStorage.getItem('products-items')!),
+					items: JSON.parse(localStorage.getItem('products-items') ?? '[]'),
 				},
 			});
 		});
@@ -210,7 +210,9 @@ describe('withStorageSync test', () => {
 				...initialAppState,
 				products: {
 					...initialAppState.products,
-					items: JSON.parse(localStorage.getItem(`${prefix}-products-items`)!),
+					items: JSON.parse(
+						localStorage.getItem(`${prefix}-products-items`) ?? '[]',
+					),
 				},
 			});
 		});
