@@ -7,7 +7,8 @@
 		"build": "ng build ngrx-extension && ng build ngrx-extension-app",
 		"watch": "ng build --watch --configuration development",
 		"test": "jest",
-		"check:biome": "biome check --write ./src && biome check --write ./projects/ngrx-extension/src && biome check --write ./testsData"
+		"check:biome": "biome check --write ./src && biome check --write ./projects/ngrx-extension/src && biome check --write ./testsData",
+		"release": "ng build ngrx-extension && semantic-release"
 	},
 	"private": true,
 	"dependencies": {
@@ -34,12 +35,16 @@
 		"@angular/cli": "^19.0.6",
 		"@angular/compiler-cli": "^19.0.0",
 		"@biomejs/biome": "1.9.4",
+		"@semantic-release/changelog": "^6.0.3",
+		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/npm": "^12.0.1",
 		"@types/jest": "^29.5.14",
 		"autoprefixer": "^10.4.20",
 		"jest": "^29.7.0",
 		"jest-preset-angular": "^14.4.2",
 		"ng-packagr": "^19.0.0",
 		"postcss": "^8.4.49",
+		"semantic-release": "^24.2.1",
 		"tailwindcss": "^3.4.17",
 		"typescript": "~5.6.2"
 	},
