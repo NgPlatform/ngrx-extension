@@ -80,7 +80,7 @@ describe('withStorageSync', () => {
 				...initialAppState,
 				products: {
 					...initialAppState.products,
-					items: JSON.parse(localStorage.getItem('products-items')!),
+					items: JSON.parse(localStorage.getItem('products-items') ?? '[]'),
 				},
 			});
 		});
@@ -149,7 +149,7 @@ describe('withStorageSync', () => {
 				...initialAppState,
 				products: {
 					...initialAppState.products,
-					items: JSON.parse(localStorage.getItem('products-items')!),
+					items: JSON.parse(localStorage.getItem('products-items') ?? '[]'),
 				},
 			});
 		});
@@ -210,7 +210,9 @@ describe('withStorageSync', () => {
 				...initialAppState,
 				products: {
 					...initialAppState.products,
-					items: JSON.parse(localStorage.getItem(`${prefix}-products-items`)!),
+					items: JSON.parse(
+						localStorage.getItem(`${prefix}-products-items`) ?? '[]',
+					),
 				},
 			});
 		});
