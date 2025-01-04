@@ -54,7 +54,7 @@ export function withStorageSync({
 					prefix,
 					(key, fullKeyPath, objectState) => {
 						// If the store does not have the specified key
-						if (!(objectState as Record<string, object>).hasOwnProperty(key)) {
+						if (!Object.hasOwn(objectState as Record<string, object>, key)) {
 							throw new Error(`[${key}] ${key} not found`);
 						}
 
@@ -131,7 +131,7 @@ function writeDfs(
 	prefix: string,
 	callback: (key: string, fullKeyPath: string, objectState: unknown) => void,
 ): void {
-	nodes.forEach((node) => {
+	for (const node of nodes) {
 		if (typeof node === 'string') {
 			const fullKeyPath = prefix === '' ? node : `${prefix}-${node}`;
 			// If the current node is the end, call the callback to write data to storage
@@ -144,7 +144,7 @@ function writeDfs(
 				writeDfs(nestedState, childNode, newPrefix, callback);
 			}
 		}
-	});
+	}
 }
 
 /**
@@ -160,7 +160,7 @@ function readDfs(
 	prefix: string,
 	callback: (fullKeyPath: string) => void,
 ): void {
-	nodes.forEach((node) => {
+	for (const node of nodes) {
 		if (typeof node === 'string') {
 			const fullPathKey = prefix === '' ? node : `${prefix}-${node}`;
 			callback(fullPathKey);
@@ -170,7 +170,16 @@ function readDfs(
 				readDfs(childNode, newPrefix, callback);
 			}
 		}
-	});
+		if (typeof node === 'string') {
+			const fullPathKey = prefix === '' ? node : `${prefix}-${node}`;
+			callback(fullPathKey);
+		} else {
+			for (const [key, childNode] of Object.entries(node)) {
+				const newPrefix = prefix === '' ? key : `${prefix}-${node}`;
+				readDfs(childNode, newPrefix, callback);
+			}
+		}
+	}
 }
 
 /**
