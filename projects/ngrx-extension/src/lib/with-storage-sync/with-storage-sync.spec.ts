@@ -1,8 +1,4 @@
-import {
-	type AppState,
-	generateProductsItem,
-	initialAppState,
-} from '@/testsData/model';
+import { type AppState, generateProductsItem, initialAppState } from '@/testsData/model';
 import { TestBed } from '@angular/core/testing';
 import { getState, patchState, signalStore, withState } from '@ngrx/signals';
 import { withStorageSync } from './with-storage-sync';
@@ -13,15 +9,9 @@ describe('withStorageSync', () => {
 	});
 
 	it('should retrieve values from storage during initialization and update the store state based on keys', () => {
-		const expectedProductsItems = [
-			generateProductsItem(),
-			generateProductsItem(),
-		];
+		const expectedProductsItems = [generateProductsItem(), generateProductsItem()];
 
-		localStorage.setItem(
-			'products-items',
-			JSON.stringify(expectedProductsItems),
-		);
+		localStorage.setItem('products-items', JSON.stringify(expectedProductsItems));
 
 		TestBed.runInInjectionContext(() => {
 			const Store = signalStore(
@@ -210,9 +200,7 @@ describe('withStorageSync', () => {
 				...initialAppState,
 				products: {
 					...initialAppState.products,
-					items: JSON.parse(
-						localStorage.getItem(`${prefix}-products-items`) ?? '[]',
-					),
+					items: JSON.parse(localStorage.getItem(`${prefix}-products-items`) ?? '[]'),
 				},
 			});
 		});

@@ -29,12 +29,7 @@ export type TConfig = {
  * @param config  Optional settings (if `sync` is set to true, any state change is automatically written to Storage).
  * @returns An NgRx Signals store feature object providing methods and hooks for state synchronization.
  */
-export function withStorageSync({
-	storage,
-	nodes,
-	prefix,
-	sync,
-}: TConfig): SignalStoreFeature<
+export function withStorageSync({ storage, nodes, prefix, sync }: TConfig): SignalStoreFeature<
 	EmptyFeatureResult,
 	{
 		state: {};
@@ -48,29 +43,21 @@ export function withStorageSync({
 			writeToStorage(): void {
 				const currentState = getState(store) as Record<string, unknown>;
 
-				writeDfs(
-					currentState,
-					nodes,
-					prefix,
-					(key, fullKeyPath, objectState) => {
-						// If the store does not have the specified key
-						if (!Object.hasOwn(objectState as Record<string, object>, key)) {
-							throw new Error(`[${key}] ${key} not found`);
-						}
+				writeDfs(currentState, nodes, prefix, (key, fullKeyPath, objectState) => {
+					// If the store does not have the specified key
+					if (!Object.hasOwn(objectState as Record<string, object>, key)) {
+						throw new Error(`[${key}] ${key} not found`);
+					}
 
-						// The store has the key, but it is undefined
-						// todo: Instead of throwing an error, returning early might be preferable
-						if (
-							typeof (objectState as Record<string, object>)[key] ===
-							'undefined'
-						) {
-							throw new Error(`state[${key}] type is undefined`);
-						}
+					// The store has the key, but it is undefined
+					// todo: Instead of throwing an error, returning early might be preferable
+					if (typeof (objectState as Record<string, object>)[key] === 'undefined') {
+						throw new Error(`state[${key}] type is undefined`);
+					}
 
-						const value: object = (objectState as Record<string, object>)[key];
-						storage.setItem(fullKeyPath, JSON.stringify(value));
-					},
-				);
+					const value: object = (objectState as Record<string, object>)[key];
+					storage.setItem(fullKeyPath, JSON.stringify(value));
+				});
 			},
 
 			// Reads data from the storage and saves it into the store
@@ -82,15 +69,8 @@ export function withStorageSync({
 						return;
 					}
 
-					const slicedKeys: string[] = fullKeyPath
-						.split('-')
-						.filter((x) => x !== prefix);
-					const recordState = createObject(
-						jsonString,
-						slicedKeys,
-						slicedKeys.length - 1,
-						{},
-					);
+					const slicedKeys: string[] = fullKeyPath.split('-').filter((x) => x !== prefix);
+					const recordState = createObject(jsonString, slicedKeys, slicedKeys.length - 1, {});
 
 					patchState(store, (prevState) => {
 						return R.mergeDeep(prevState, recordState);
@@ -155,11 +135,7 @@ function writeDfs(
  * @param prefix   A combined prefix string from parent nodes, etc.
  * @param callback A callback that receives the final key (fullKeyPath).
  */
-function readDfs(
-	nodes: TNodeItem[],
-	prefix: string,
-	callback: (fullKeyPath: string) => void,
-): void {
+function readDfs(nodes: TNodeItem[], prefix: string, callback: (fullKeyPath: string) => void): void {
 	for (const node of nodes) {
 		if (typeof node === 'string') {
 			const fullPathKey = prefix === '' ? node : `${prefix}-${node}`;

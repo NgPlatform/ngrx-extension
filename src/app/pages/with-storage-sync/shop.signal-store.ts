@@ -1,8 +1,4 @@
-import {
-	type AppState,
-	type UserState,
-	initialAppState,
-} from '@/testsData/model';
+import { type AppState, type UserState, initialAppState } from '@/testsData/model';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { withStorageSync } from 'ngrx-extension';
 
