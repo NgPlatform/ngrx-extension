@@ -1,5 +1,8 @@
 # NgrxExtension
 
+[![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
+[![npm version](https://badge.fury.io/js/%40ngplatform%2Fngrx-extension.svg)](https://www.npmjs.com/@ngplatform/ngrx-extension)
+
 ## Synchronize with storage `withStorageSync`
 
 An extension feature that saves and loads store states to/from Storage (e.g., localStorage or sessionStorage), and synchronizes state changes automatically if desired.
