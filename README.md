@@ -2,6 +2,9 @@
 
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
 [![npm version](https://badge.fury.io/js/%40ngplatform%2Fngrx-extension.svg)](https://www.npmjs.com/@ngplatform/ngrx-extension)
+[![Formatted with Biome](https://img.shields.io/badge/Formatted_with-Biome-60a5fa?style=flat&logo=biome)](https://biomejs.dev/)
+[![Linted with Biome](https://img.shields.io/badge/Linted_with-Biome-60a5fa?style=flat&logo=biome)](https://biomejs.dev)
+[![Checked with Biome](https://img.shields.io/badge/Checked_with-Biome-60a5fa?style=flat&logo=biome)](https://biomejs.dev)
 
 ## Synchronize with storage `withStorageSync`
 
