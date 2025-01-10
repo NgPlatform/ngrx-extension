@@ -29,7 +29,7 @@
 		"@ngrx/store": "^19.0.0",
 		"remeda": "^2.19.0",
 		"rxjs": "~7.8.0",
-		"idb": "^8.0.1"
+		"dexie": "^4.0.10"
 	},
 	"dependencies": {
 		"tslib": "^2.3.0"

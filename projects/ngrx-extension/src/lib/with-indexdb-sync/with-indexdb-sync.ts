@@ -1,43 +1,39 @@
-import { patchState, signalStoreFeature, withHooks, withMethods, withState } from "@ngrx/signals";
-import { IDBPDatabase, openDB } from 'idb';
+import { signalStoreFeature, withHooks, withMethods } from '@ngrx/signals';
+import { rxMethod } from '@ngrx/signals/rxjs-interop';
+import Dexie from 'dexie';
+import { from, pipe, switchMap } from 'rxjs';
 
-export type IndexDBModel = {
-    dbName:string,
-    version:number
-}
+export type IndexDBModel<Table extends string> = {
+	dbName: string;
+	version: number;
+	stores: { [key in Table]: string };
+};
 
-export function withIndexDBSync({dbName,version = 1}:IndexDBModel){
+export function withIndexDBSync<Table extends string>({
+	dbName,
+	version = 1,
+	stores,
+}: IndexDBModel<Table>) {
+	const db = new Dexie(dbName);
 
-    return signalStoreFeature(
+	db.version(version).stores(stores);
 
-        withState<{
-            db:IDBPDatabase<unknown>|undefined
-        }>({
-            db:undefined
-        }),
-
-        withMethods((store) => ({
-
-            initialize:( async () => {
-                const db = await openDB(dbName,version,{
-                    upgrade(db) {
-                        const sampleStore = db.createObjectStore('sampleStore', { keyPath: 'id' });
-                        sampleStore.createIndex('sampleIndex', 'name', { unique: true, multiEntry: true});
-                    },
-                });
-                patchState(store,{db});
-
-                const tc = store.db()?.transaction(['sampleStore'],'readwrite').objectStore('sampleStore');
-
-                tc?.add({id:1,name:1})
-            }),
-
-        })),
-        withHooks({
-            onInit:(async (store) => {
-                await store.initialize();
-            }),
-        })
-    )
-
+	return signalStoreFeature(
+		withMethods((store) => ({
+			write: rxMethod<{ table: Table }>(
+				pipe(
+					switchMap(() => {
+						return from(
+							db.table('tasks').add({ title: 'task1', name: 'name1' }),
+						);
+					}),
+				),
+			),
+		})),
+		withHooks({
+			onInit: (store) => {
+				// store.write({});
+			},
+		}),
+	);
 }
