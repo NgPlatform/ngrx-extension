@@ -3,17 +3,27 @@ import { Component, inject } from '@angular/core';
 import { signalStore, withState } from '@ngrx/signals';
 
 const UserSignalStore = signalStore(
-	withState<{ user: { name: string; id: string } }>({
-		user: {
-			name: 'mzkmnk',
-			id: '00000000',
+	withState<{
+		users: { name: string; age: number }[];
+		tasks: { title: string; subTitle: string };
+	}>({
+		users: [
+			{
+				name: 'mzkmnk',
+				age: 14,
+			},
+		],
+		tasks: {
+			title: 'task1',
+			subTitle: 'subtask1',
 		},
 	}),
-	withIndexDBSync<'user'>({
-		dbName: 'dbName',
-		version: 1,
+	withIndexDBSync<'users' | 'tasks'>({
+		dbName: 'withIndexDBSync',
+		nodes: ['users', 'tasks'],
 		stores: {
-			user: '++id,name',
+			users: '++id',
+			tasks: '++id, title, subTitle',
 		},
 	}),
 );
@@ -23,15 +33,13 @@ const UserSignalStore = signalStore(
 	providers: [UserSignalStore],
 	template: `
         <div>
-            <p>username:{{ userSignalStore.user.name() }}</p>
-            <p>userId:{{ userSignalStore.user.id() }}</p>
+          @for (user of userSignalStore.users();track user){
+            <p>username:{{ user.name }}</p>
+            <p>userId:{{ user.age }}</p>
+          }
         </div>
     `,
 })
 export class WithStorageSyncComponent {
 	userSignalStore = inject(UserSignalStore);
-
-	onInit(): void {
-		this.userSignalStore.write({ table: 'user' });
-	}
 }
