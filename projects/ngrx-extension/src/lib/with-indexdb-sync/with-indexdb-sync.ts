@@ -1,5 +1,6 @@
 import {
 	type TNodeItem,
+	readDfs,
 	writeDfs,
 } from '@/projects/ngrx-extension/src/lib/helpers/graph';
 import { effect } from '@angular/core';
@@ -13,18 +14,24 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import Dexie from 'dexie';
 import { pipe, tap } from 'rxjs';
 
-export type IndexDBModel<Table extends string> = {
+export type IndexDBModel<
+	Table extends string,
+	ObjectState extends Partial<{ [key in Table]: unknown }>,
+> = {
 	dbName: string;
 	version?: number;
 	sync?: boolean;
-	prefix?: string;
 	nodes: TNodeItem[];
 	writeCallback: Partial<{
 		[key in Table]: ({
 			db,
 			key,
 			targetState,
-		}: { db: Dexie; key: string; targetState: unknown }) => Promise<void>;
+		}: {
+			db: Dexie;
+			key: string;
+			targetState: ObjectState[key];
+		}) => Promise<void>;
 	}>;
 	stores: { [key in Table]: string };
 };
@@ -42,15 +49,17 @@ export const baseWriteCallback = async (
 	await db.table(key).put(targetState);
 };
 
-export function withIndexDBSync<Table extends string>({
+export function withIndexDBSync<
+	Table extends string,
+	ObjectState extends Partial<{ [key in Table]: unknown }>,
+>({
 	dbName,
 	version = 1,
 	sync = true,
 	nodes = [],
-	prefix = '',
 	writeCallback,
 	stores,
-}: IndexDBModel<Table>) {
+}: IndexDBModel<Table, ObjectState>) {
 	const db = new Dexie(dbName);
 
 	db.version(version).stores(stores);
@@ -65,11 +74,11 @@ export function withIndexDBSync<Table extends string>({
 						writeDfs(
 							currentState,
 							nodes,
-							prefix,
+							'',
 							async (key, _fullKeyPath, objectState) => {
-								const targetState = (objectState as Record<string, unknown>)[
-									key
-								];
+								const targetState: ObjectState[Table] = (
+									objectState as Record<string, ObjectState[Table]>
+								)[key];
 
 								if (Object.hasOwn(writeCallback, key)) {
 									// fixme key type check
@@ -86,13 +95,19 @@ export function withIndexDBSync<Table extends string>({
 			readFromStorage: rxMethod(
 				pipe(
 					tap(() => {
-						db.table('users').toArray();
+						readDfs(nodes, '', async (fullKeyPath) => {
+							const data = await db.table(fullKeyPath).toArray();
+
+							console.log('data', data);
+						});
 					}),
 				),
 			),
 		})),
 		withHooks({
 			onInit: (store) => {
+				store.readFromStorage({});
+
 				if (sync) {
 					effect(() =>
 						((_) => {
