@@ -19,7 +19,27 @@ export type IndexDBModel<Table extends string> = {
 	sync?: boolean;
 	prefix?: string;
 	nodes: TNodeItem[];
+	writeCallback: Partial<{
+		[key in Table]: ({
+			db,
+			key,
+			targetState,
+		}: { db: Dexie; key: string; targetState: unknown }) => Promise<void>;
+	}>;
 	stores: { [key in Table]: string };
+};
+
+export const baseWriteCallback = async (
+	db: Dexie,
+	key: string,
+	targetState: unknown,
+) => {
+	if (Array.isArray(targetState)) {
+		await db.table(key).bulkPut(targetState);
+		return;
+	}
+
+	await db.table(key).put(targetState);
 };
 
 export function withIndexDBSync<Table extends string>({
@@ -28,6 +48,7 @@ export function withIndexDBSync<Table extends string>({
 	sync = true,
 	nodes = [],
 	prefix = '',
+	writeCallback,
 	stores,
 }: IndexDBModel<Table>) {
 	const db = new Dexie(dbName);
@@ -45,10 +66,17 @@ export function withIndexDBSync<Table extends string>({
 							currentState,
 							nodes,
 							prefix,
-							async (key, fullKeyPath, objectState) => {
-								await db
-									.table(fullKeyPath)
-									.add((objectState as Record<string, unknown>)[key]);
+							async (key, _fullKeyPath, objectState) => {
+								const targetState = (objectState as Record<string, unknown>)[
+									key
+								];
+
+								if (Object.hasOwn(writeCallback, key)) {
+									// fixme key type check
+									await writeCallback[key as Table]?.({ db, key, targetState });
+								} else {
+									await baseWriteCallback(db, key, targetState);
+								}
 							},
 						);
 					}),

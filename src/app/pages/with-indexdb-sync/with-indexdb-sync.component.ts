@@ -21,6 +21,9 @@ const UserSignalStore = signalStore(
 	withIndexDBSync<'users' | 'tasks'>({
 		dbName: 'withIndexDBSync',
 		nodes: ['users', 'tasks'],
+		writeCallback: {
+			users: async ({ db, key, targetState }) => {},
+		},
 		stores: {
 			users: '++id',
 			tasks: '++id, title, subTitle',
