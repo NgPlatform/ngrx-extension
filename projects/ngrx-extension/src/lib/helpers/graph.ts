@@ -54,15 +54,6 @@ export function readDfs(
 				readDfs(childNode, newPrefix, callback);
 			}
 		}
-		if (typeof node === 'string') {
-			const fullPathKey = prefix === '' ? node : `${prefix}-${node}`;
-			callback(fullPathKey);
-		} else {
-			for (const [key, childNode] of Object.entries(node)) {
-				const newPrefix = prefix === '' ? key : `${prefix}-${node}`;
-				readDfs(childNode, newPrefix, callback);
-			}
-		}
 	}
 }
 
