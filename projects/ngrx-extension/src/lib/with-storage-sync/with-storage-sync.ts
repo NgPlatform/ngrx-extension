@@ -1,8 +1,8 @@
 import {
 	type TNodeItem,
-	createObject,
-	readDfs,
-	writeDfs,
+	buildNestedState,
+	traverseAndRead,
+	traverseAndWrite,
 } from '@/projects/ngrx-extension/src/lib/helpers/graph';
 import { effect } from '@angular/core';
 import {
@@ -52,7 +52,7 @@ export function withStorageSync({
 			writeToStorage(): void {
 				const currentState = getState(store) as Record<string, unknown>;
 
-				writeDfs(
+				traverseAndWrite(
 					currentState,
 					nodes,
 					prefix,
@@ -79,7 +79,7 @@ export function withStorageSync({
 
 			// Reads data from the storage and saves it into the store
 			readFromStorage(): void {
-				readDfs(nodes, prefix, (fullKeyPath) => {
+				traverseAndRead(nodes, prefix, (fullKeyPath) => {
 					const jsonString: string | null = storage.getItem(fullKeyPath);
 
 					if (jsonString === null) {
@@ -89,7 +89,7 @@ export function withStorageSync({
 					const slicedKeys: string[] = fullKeyPath
 						.split('-')
 						.filter((x) => x !== prefix);
-					const recordState = createObject(
+					const recordState = buildNestedState(
 						jsonString,
 						slicedKeys,
 						slicedKeys.length - 1,

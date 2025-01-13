@@ -9,7 +9,7 @@ export type TNodeItem = string | { [key: string]: TNodeItem[] };
  * @param prefix       A combined prefix string from parent nodes, etc.
  * @param callback     A callback to be invoked when a key is found (taking key, fullKeyPath, objectState).
  */
-export function writeDfs(
+export function traverseAndWrite(
 	currentState: Record<string, unknown>,
 	nodes: TNodeItem[],
 	prefix: string,
@@ -25,7 +25,7 @@ export function writeDfs(
 				const nestedState = currentState[key] as Record<string, unknown>;
 				const newPrefix = prefix === '' ? key : `${prefix}-${key}`;
 
-				writeDfs(nestedState, childNode, newPrefix, callback);
+				traverseAndWrite(nestedState, childNode, newPrefix, callback);
 			}
 		}
 	}
@@ -39,7 +39,7 @@ export function writeDfs(
  * @param prefix   A combined prefix string from parent nodes, etc.
  * @param callback A callback that receives the final key (fullKeyPath).
  */
-export function readDfs(
+export function traverseAndRead(
 	nodes: TNodeItem[],
 	prefix: string,
 	callback: (fullKeyPath: string) => void,
@@ -51,7 +51,7 @@ export function readDfs(
 		} else {
 			for (const [key, childNode] of Object.entries(node)) {
 				const newPrefix = prefix === '' ? key : `${prefix}-${node}`;
-				readDfs(childNode, newPrefix, callback);
+				traverseAndRead(childNode, newPrefix, callback);
 			}
 		}
 	}
@@ -67,7 +67,7 @@ export function readDfs(
  * @param currentState The state object currently being assembled.
  * @returns The object constructed according to the node hierarchy.
  */
-export function createObject(
+export function buildNestedState(
 	jsonString: string,
 	nodesPath: string[],
 	nodesIdx: number,
@@ -84,5 +84,5 @@ export function createObject(
 		return recordState;
 	}
 
-	return createObject(jsonString, nodesPath, nodesIdx - 1, recordState);
+	return buildNestedState(jsonString, nodesPath, nodesIdx - 1, recordState);
 }
