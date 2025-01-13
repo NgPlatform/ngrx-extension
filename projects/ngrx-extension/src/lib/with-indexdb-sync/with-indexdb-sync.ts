@@ -1,117 +1,107 @@
 import {
 	type TNodeItem,
-	readDfs,
-	writeDfs,
+	buildNestedState,
+	traverseAndRead,
+	traverseAndWrite,
 } from '@/projects/ngrx-extension/src/lib/helpers/graph';
 import { effect } from '@angular/core';
 import {
 	getState,
+	patchState,
 	signalStoreFeature,
 	withHooks,
 	withMethods,
 } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import Dexie from 'dexie';
+import * as R from 'remeda';
 import { pipe, tap } from 'rxjs';
 
-export type IndexDBModel<
-	Table extends string,
-	ObjectState extends Partial<{ [key in Table]: unknown }>,
-> = {
+export type IndexDBModel<K extends string> = {
 	dbName: string;
 	version?: number;
 	sync?: boolean;
 	nodes: TNodeItem[];
-	writeCallback: Partial<{
-		[key in Table]: ({
-			db,
-			key,
-			targetState,
-		}: {
-			db: Dexie;
-			key: string;
-			targetState: ObjectState[key];
-		}) => Promise<void>;
-	}>;
-	stores: { [key in Table]: string };
+	schema: { [key in K]: string };
 };
 
-export const baseWriteCallback = async (
-	db: Dexie,
-	key: string,
-	targetState: unknown,
-) => {
-	if (Array.isArray(targetState)) {
-		await db.table(key).bulkPut(targetState);
-		return;
-	}
-
-	await db.table(key).put(targetState);
-};
-
+/**
+ * developer preview
+ *
+ * **Content**
+ * この関数はストアの状態とIndexDBを同期させるための関数。
+ * #### writeToIndexDB
+ *
+ * #### readFromIndexDB
+ * この関数は現在**配列**のみに対応。
+ * テーブル情報を取得しストアの状態に反映を行う。
+ *
+ * @param dbName
+ * @param version
+ * @param sync
+ * @param nodes
+ * @param stores
+ */
 export function withIndexDBSync<
-	Table extends string,
-	ObjectState extends Partial<{ [key in Table]: unknown }>,
->({
-	dbName,
-	version = 1,
-	sync = true,
-	nodes = [],
-	writeCallback,
-	stores,
-}: IndexDBModel<Table, ObjectState>) {
+	K extends string,
+	S extends { [key in K]: unknown[] },
+>({ dbName, version = 1, sync = true, nodes, schema }: IndexDBModel<K>) {
 	const db = new Dexie(dbName);
 
-	db.version(version).stores(stores);
+	db.version(version).stores(schema);
 
 	return signalStoreFeature(
 		withMethods((store) => ({
-			writeToStorage: rxMethod(
+			writeToIndexDB: rxMethod(
 				pipe(
 					tap(() => {
 						const currentState = getState(store) as Record<string, unknown>;
 
-						writeDfs(
+						traverseAndWrite(
 							currentState,
 							nodes,
 							'',
-							async (key, _fullKeyPath, objectState) => {
-								const targetState: ObjectState[Table] = (
-									objectState as Record<string, ObjectState[Table]>
-								)[key];
+							async (table, _, objectState) => {
+								const targetState: S[K] = (objectState as Record<string, S[K]>)[
+									table
+								];
 
-								if (Object.hasOwn(writeCallback, key)) {
-									// fixme key type check
-									await writeCallback[key as Table]?.({ db, key, targetState });
-								} else {
-									await baseWriteCallback(db, key, targetState);
-								}
+								await db.table(table).bulkPut(targetState);
 							},
 						);
 					}),
 				),
 			),
 
-			readFromStorage: rxMethod(
-				pipe(
-					tap(() => {
-						readDfs(nodes, '', async (fullKeyPath) => {
-							const data = await db.table(fullKeyPath).toArray();
+			readFromIndexDB() {
+				traverseAndRead(nodes, '', (fullKeyPath) => {
+					const slicedKeys: string[] = fullKeyPath.split('-');
 
-							console.log('data', data);
+					db.table(slicedKeys[slicedKeys.length - 1])
+						.toArray()
+						.then((data) => {
+							const recordState = buildNestedState(
+								JSON.stringify(data),
+								slicedKeys,
+								slicedKeys.length - 1,
+								{},
+							);
+
+							patchState(store, (prevState) => {
+								return R.mergeDeep(prevState, recordState);
+							});
 						});
-					}),
-				),
-			),
+				});
+			},
 		})),
 		withHooks({
 			onInit: (store) => {
-				store.readFromStorage({});
+				store.readFromIndexDB();
 
 				if (sync) {
 					effect(() =>
 						((_) => {
-							store.writeToStorage({});
+							store.writeToIndexDB({});
 						})(getState(store)),
 					);
 				}

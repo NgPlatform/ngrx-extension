@@ -5,46 +5,40 @@ import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 
 const UserSignalStore = signalStore(
 	withState<{
-		users: { id: number; name: string; age: number }[];
+		obj: {
+			users: { id: number; name: string; age: number }[];
+		};
 		tasks: { title: string; subTitle: string };
 	}>({
-		users: [
-			{
-				id: 1,
-				name: 'mzkmnk',
-				age: 14,
-			},
-			{
-				id: 2,
-				name: 'mnk',
-				age: 21,
-			},
-		],
+		obj: {
+			users: [
+				{
+					id: 1,
+					name: 'mzkmn',
+					age: 14,
+				},
+				{
+					id: 2,
+					name: 'mnk',
+					age: 21,
+				},
+			],
+		},
 		tasks: {
 			title: 'task1',
 			subTitle: 'subtask1',
 		},
 	}),
 	withIndexDBSync<
-		'users' | 'tasks',
+		'users',
 		{
 			users: { id: number; name: string; age: number }[];
-			tasks: { title: string; subTitle: string };
 		}
 	>({
 		dbName: 'withIndexDBSync',
-		nodes: ['users', 'tasks'],
-		stores: {
+		nodes: [{ obj: ['users'] }],
+		schema: {
 			users: 'id',
-			tasks: '++id, title, subTitle',
-		},
-		writeCallback: {
-			users: async ({ db, key, targetState }) => {
-				db.table(key).bulkPut(targetState);
-			},
-			tasks: async ({ db, key, targetState }) => {
-				db.table(key).put(targetState);
-			},
 		},
 	}),
 
@@ -52,16 +46,18 @@ const UserSignalStore = signalStore(
 		editUser(idx: number) {
 			patchState(store, (state) => ({
 				...state,
-				users: state.users.map((user) => {
-					if (user.id === idx) {
-						return {
-							name: faker.person.firstName(),
-							age: 10,
-							id: idx,
-						};
-					}
-					return user;
-				}),
+				obj: {
+					users: state.obj.users.map((user) => {
+						if (user.id === idx) {
+							return {
+								name: faker.person.firstName(),
+								age: 10,
+								id: idx,
+							};
+						}
+						return user;
+					}),
+				},
 			}));
 		},
 	})),
@@ -72,7 +68,7 @@ const UserSignalStore = signalStore(
 	providers: [UserSignalStore],
 	template: `
         <div>
-          @for (user of userSignalStore.users();track user.id){
+          @for (user of userSignalStore.obj.users();track user.id){
             <p>username:{{ user.name }}</p>
             <p>userId:{{ user.age }}</p>
 
