@@ -1,3 +1,5 @@
+import 'core-js/stable/structured-clone';
+import 'fake-indexeddb/auto';
 import { withIndexDBSync } from '@/projects/ngrx-extension/src/lib/with-indexdb-sync/with-indexdb-sync';
 import {
 	type AppState,
