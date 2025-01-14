@@ -16,7 +16,11 @@ export const routes: Routes = [
 			).then((M) => M.PatchStateWithImmerComponent),
 	},
 	{
+		path: 'with-indexdb-sync',
+		loadComponent:() => import('./pages/with-indexdb-sync/with-indexdb-sync.component').then((M) => M.WithStorageSyncComponent),
+	},
+	{
 		path: '**',
-		redirectTo: 'patch-state-with-immer',
+		redirectTo: 'with-indexdb-sync',
 	},
 ];
